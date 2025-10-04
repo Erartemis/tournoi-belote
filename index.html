@@ -1,204 +1,233 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Tournoi mondial de belote à Vancouver</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f4f6f9;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .section {
-      margin-top: 30px;
-      padding: 20px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    h2 {
-      border-bottom: 2px solid #2c3e50;
-      padding-bottom: 8px;
-      margin-bottom: 15px;
-    }
-    .poule {
-      margin-bottom: 30px;
-    }
-    .poule h3 {
-      background: #3498db;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      margin: 0;
-      text-align: center; /* centrage */
-    }
-    .team {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 12px;
-      border-bottom: 1px solid #ddd;
-    }
-    .team:nth-child(even) {
-      background: #f9f9f9;
-    }
-    .highlight {
-      background: #d6eaff !important;
-      font-weight: bold;
-    }
-    .ratio span {
-      margin: 0 3px;
-    }
-    .green { color: green; font-weight: bold; }
-    .red { color: red; font-weight: bold; }
-    .match {
-      padding: 8px 12px;
-      border-bottom: 1px solid #ddd;
-    }
-    .match:nth-child(even) {
-      background: #f2f6fa;
-    }
-    .bold { font-weight: bold; }
-  </style>
+<meta charset="UTF-8">
+<title>Tournoi mondial de belote à Vancouver</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --accent:#2b7a78;
+    --qualif:#cce8ff;
+  }
+  body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f4f6f8; margin: 20px; color:#222; }
+  header { text-align:center; margin-bottom:18px; }
+  h1 { margin:0; font-size:1.8rem; color:var(--accent); }
+  h2 { margin: 24px 0 12px; color:#333; }
+
+  /* Poules */
+  .poules { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; }
+  .poule-card {
+    background:#fff; border-radius:10px; padding:14px; width:320px;
+    box-shadow:0 6px 16px rgba(20,20,30,0.06);
+  }
+  .poule-title { font-weight:700; margin-bottom:8px; font-size:1.05rem; color:#222; }
+  .team {
+    display:grid; grid-template-columns: 1fr 90px 70px; gap:8px; align-items:center;
+    padding:10px; margin:6px 0; border-radius:8px; cursor:pointer;
+    transition: background .16s, transform .12s;
+  }
+  .team:hover{ background: #eef9ff; transform: translateY(-2px); }
+  .team .name { text-align:left; font-weight:600; color:#153243; }
+  .team .ratio { text-align:center; font-weight:700; }
+  .team .score { text-align:right; font-weight:700; color:#0b3b2e; }
+  .victory { color:green; }
+  .defeat { color:red; }
+
+  .qualified { background:var(--qualif); }
+
+  /* Matches poules */
+  .matches { max-width:980px; margin:0 auto 18px; background:#fff; padding:12px; border-radius:8px; box-shadow:0 6px 14px rgba(10,10,20,0.04); }
+  .match-row { display:flex; justify-content:space-between; gap:12px; padding:8px 6px; border-bottom:1px solid #eee; align-items:center; }
+  .match-row:last-child{ border-bottom:0; }
+  .match-left { display:flex; gap:12px; align-items:center; }
+  .match-phase { font-size:.9rem; color:#666; min-width:80px; text-align:left; }
+  .match-desc { font-weight:600; }
+  .match-status { font-weight:600; color:#555; }
+
+  /* Tableau final */
+  .table-wrapper { max-width:1200px; margin:0 auto; }
+  table { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 6px 14px rgba(10,10,20,0.04); }
+  th, td { padding:10px 12px; border-bottom:1px solid #eee; text-align:center; font-size:0.95rem; }
+  th { background:var(--accent); color:#fff; font-weight:700; }
+  tr:hover td { background:#fafafa; }
+  .winner { background:#dfffe0 !important; font-weight:700; }
+
+  /* modal */
+  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:999; }
+  .modal .card { background:#fff; padding:18px; border-radius:8px; width:320px; box-shadow:0 8px 30px rgba(0,0,0,0.2); text-align:center; }
+  .modal .close { float:right; cursor:pointer; color:#888; font-size:20px; font-weight:700; }
+
+  /* small button */
+  .btn { background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; }
+</style>
 </head>
 <body>
+<header>
   <h1>Tournoi mondial de belote à Vancouver</h1>
+</header>
 
-  <div class="section" id="poules">
-    <h2>Classements des poules</h2>
-    <div id="poules-container"></div>
+<h2>Poules</h2>
+<div class="poules" id="poules-container"></div>
+
+<h2>Matchs de poules</h2>
+<div class="matches" id="matches-container"></div>
+
+<div id="tableFinalSection" style="display:none">
+  <h2 style="display:flex;align-items:center;gap:12px;">
+    Tableau Final
+    <button id="toggleTableBtn" class="btn" style="margin-left:auto">Masquer le tableau</button>
+  </h2>
+  <div id="tableFinalWrapper" class="table-wrapper">
+    <table id="tableauFinal">
+      <thead>
+        <tr><th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
+</div>
 
-  <div class="section" id="matchs-poules">
-    <h2>Matchs de poules</h2>
-    <div id="matchs-poules-container"></div>
+<!-- Modal -->
+<div id="playerModal" class="modal" role="dialog" aria-modal="true">
+  <div class="card">
+    <div class="close" id="modalClose">&times;</div>
+    <h3 id="modalTeamName"></h3>
+    <p id="modalPlayers" style="margin-top:10px;color:#333;font-weight:600"></p>
   </div>
+</div>
 
-  <div class="section" id="finals" style="display:none;">
-    <h2>Tableau final</h2>
-    <div id="finals-container"></div>
-  </div>
+<script>
+const csvEquipes = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv";
+const csvTableau = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv";
+const csvMatchesPoules = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=285227174&single=true&output=csv";
 
-  <script>
-    const equipesUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv";
-    const poulesUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=285227174&single=true&output=csv";
-    const finalUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv";
+function toInt(v){ const n=parseInt((v||"").toString().replace(/[^0-9-]/g,'')); return isNaN(n)?0:n; }
 
-    async function fetchCSV(url) {
-      const res = await fetch(url);
-      const text = await res.text();
-      return text.split("\n").map(r => r.split(","));
-    }
+function afficherPoules(data){
+  const cont = document.getElementById('poules-container');
+  cont.innerHTML = "";
+  const poules={};
+  data.forEach(r=>{
+    const pou = r.Poule && r.Poule.toString().trim();
+    if(!pou) return;
+    if(!poules[pou]) poules[pou]=[];
+    poules[pou].push(r);
+  });
 
-    function displayPoules(data) {
-      const container = document.getElementById("poules-container");
-      const rows = data.slice(1);
+  const meilleurs3=[];
+  for(const p in poules){
+    poules[p].sort((a,b)=>{
+      const va=toInt(a.Victoires), vb=toInt(b.Victoires);
+      if(vb!==va) return vb-va;
+      return toInt(b["Score total"])-toInt(a["Score total"]);
+    });
+    if(poules[p][2]) meilleurs3.push(poules[p][2]);
+  }
+  meilleurs3.sort((a,b)=>toInt(b["Score total"])-toInt(a["Score total"]));
+  const top2trois=meilleurs3.slice(0,2);
 
-      const poules = {};
-      rows.forEach(r => {
-        if (!r[0]) return;
-        const team = {
-          nom: r[1],
-          poule: r[4],
-          score: r[5],
-          victoires: r[6],
-          defaites: r[7],
-          classement: r[9]
-        };
-        if (!poules[team.poule]) poules[team.poule] = [];
-        poules[team.poule].push(team);
+  Object.keys(poules).sort().forEach(p=>{
+    const card=document.createElement('div'); card.className='poule-card';
+    const title=document.createElement('div'); title.className='poule-title'; title.textContent="Poule "+p;
+    card.appendChild(title);
+
+    poules[p].forEach((team, idx)=>{
+      const div=document.createElement('div'); div.className='team';
+      const name=team["Nom de l’équipe"]||team["Nom équipe"]||team["Nom"]||"";
+      const vic=team["Victoires"]||"0";
+      const def=team["Defaites"]||"0";
+      const score=team["Score total"]||"0";
+
+      // emoji classement
+      let medal="";
+      if(idx===0) medal="🥇 ";
+      else if(idx===1) medal="🥈 ";
+      else if(idx===2) medal="🥉 ";
+      else if(idx===3) medal="💀 ";
+
+      if(idx<2 || top2trois.includes(team)) div.classList.add('qualified');
+
+      div.innerHTML=`<div class="name">${medal}${name}</div>
+                     <div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div>
+                     <div class="score">${score}</div>`;
+
+      div.addEventListener('click', e=>{
+        e.stopPropagation();
+        document.getElementById('modalTeamName').textContent=name;
+        const j1=team["Joueur 1"]||team["Joueur1"]||"";
+        const j2=team["Joueur 2"]||team["Joueur2"]||"";
+        document.getElementById('modalPlayers').textContent=[j1,j2].filter(Boolean).join(' & ');
+        document.getElementById('playerModal').style.display='flex';
       });
+      card.appendChild(div);
+    });
+    cont.appendChild(card);
+  });
+}
 
-      Object.keys(poules).forEach(poule => {
-        const div = document.createElement("div");
-        div.className = "poule";
-        div.innerHTML = `<h3>Poule ${poule}</h3>`;
-        poules[poule].forEach(t => {
-          let medal = "💀";
-          if (t.classement === "1") medal = "🥇";
-          else if (t.classement === "2") medal = "🥈";
-          else if (t.classement === "3") medal = "🥉";
+let tousMatchsJoues=true;
+function afficherMatchesPoules(data){
+  const cont=document.getElementById('matches-container');
+  cont.innerHTML="";
+  data.forEach(row=>{
+    if(!Object.values(row).some(v=>v)) return;
+    const teamA=row["Équipe A"]||row["Equipe A"]||"";
+    const teamB=row["Équipe B"]||row["Equipe B"]||"";
+    const sa=toInt(row["Score A"]);
+    const sb=toInt(row["Score B"]);
+    const container=document.createElement('div'); container.className='match-row';
+    const left=document.createElement('div'); left.className='match-left';
+    const phase=document.createElement('div'); phase.className='match-phase'; phase.textContent=row["Phase"]||"";
+    const desc=document.createElement('div'); desc.className='match-desc';
 
-          div.innerHTML += `
-            <div class="team ${t.classement <= 3 ? "highlight" : ""}">
-              <span>${medal} ${t.nom}</span>
-              <span class="ratio">
-                <span class="green">${t.victoires}</span> -
-                <span class="red">${t.defaites}</span>
-              </span>
-              <span>${t.score}</span>
-            </div>
-          `;
-        });
-        container.appendChild(div);
-      });
+    if(sa===0 && sb===0){
+      desc.innerHTML=`${teamA} — ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
+      tousMatchsJoues=false;
+    } else if(sa>sb){
+      desc.innerHTML=`<strong>${teamA}</strong> (${sa}) — ${teamB} (${sb})`;
+    } else if(sb>sa){
+      desc.innerHTML=`${teamA} (${sa}) — <strong>${teamB}</strong> (${sb})`;
+    } else {
+      desc.innerHTML=`${teamA} (${sa}) — ${teamB} (${sb}) <em style="margin-left:8px;color:#666">(Égalité)</em>`;
     }
 
-    function displayPoulesMatches(data) {
-      const container = document.getElementById("matchs-poules-container");
-      const rows = data.slice(1);
-      rows.forEach(r => {
-        if (!r[0]) return;
-        const eqA = r[0], eqB = r[2];
-        const scA = parseInt(r[3]) || 0;
-        const scB = parseInt(r[4]) || 0;
-        let display;
+    left.appendChild(phase); left.appendChild(desc);
+    container.appendChild(left);
+    cont.appendChild(container);
+  });
 
-        if (scA === 0 && scB === 0) {
-          display = "Match à jouer";
-        } else {
-          const boldA = scA > scB ? "bold" : "";
-          const boldB = scB > scA ? "bold" : "";
-          display = `<span class="${boldA}">${eqA} ${scA}</span> - <span class="${boldB}">${scB} ${eqB}</span>`;
-        }
+  if(tousMatchsJoues) document.getElementById('tableFinalSection').style.display='block';
+}
 
-        container.innerHTML += `<div class="match">${display}</div>`;
-      });
-    }
+function remplirTableauFinal(data){
+  const tbody=document.querySelector('#tableauFinal tbody');
+  tbody.innerHTML="";
+  data.forEach(row=>{
+    if(!Object.values(row).some(v=>v)) return;
+    const tr=document.createElement('tr');
+    const cols=["Phase","Match","Équipe A","Équipe B","Score A","Score B","Vainqueur"];
+    tr.innerHTML=cols.map(c=>{
+      let v=row[c]||row[c.replace('É','E')]||"";
+      return `<td${(c==="Vainqueur" && v)?' class="winner"':''}>${v}</td>`;
+    }).join("");
+    tbody.appendChild(tr);
+  });
+}
 
-    function displayFinals(data, pouleMatches) {
-      const container = document.getElementById("finals-container");
-      const rows = data.slice(1);
+document.getElementById('modalClose').addEventListener('click', ()=>document.getElementById('playerModal').style.display='none');
+window.addEventListener('click', e=>{ if(e.target===document.getElementById('playerModal')) document.getElementById('playerModal').style.display='none'; });
 
-      // Vérifier si tous les matchs de poules sont joués
-      const pouleLeft = pouleMatches.slice(1).some(r => (parseInt(r[3]) || 0) === 0 && (parseInt(r[4]) || 0) === 0);
-      if (pouleLeft) return;
+const toggleBtn=document.getElementById('toggleTableBtn');
+toggleBtn.addEventListener('click', ()=>{
+  const wrap=document.getElementById('tableFinalWrapper');
+  if(wrap.style.display==='none'){ wrap.style.display='block'; toggleBtn.textContent='Masquer le tableau'; }
+  else { wrap.style.display='none'; toggleBtn.textContent='Afficher le tableau'; }
+});
 
-      document.getElementById("finals").style.display = "block";
-
-      rows.forEach(r => {
-        if (!r[0]) return;
-        const phase = r[0], eqA = r[2], eqB = r[3];
-        const scA = parseInt(r[4]) || 0;
-        const scB = parseInt(r[5]) || 0;
-        let display;
-
-        if (scA === 0 && scB === 0) {
-          display = "Match à jouer";
-        } else {
-          const boldA = scA > scB ? "bold" : "";
-          const boldB = scB > scA ? "bold" : "";
-          display = `<span class="${boldA}">${eqA} ${scA}</span> - <span class="${boldB}">${scB} ${eqB}</span>`;
-        }
-
-        container.innerHTML += `<div class="match"><strong>${phase}</strong>: ${display}</div>`;
-      });
-    }
-
-    async function init() {
-      const equipes = await fetchCSV(equipesUrl);
-      const poules = await fetchCSV(poulesUrl);
-      const finals = await fetchCSV(finalUrl);
-
-      displayPoules(equipes);
-      displayPoulesMatches(poules);
-      displayFinals(finals, poules);
-    }
-
-    init();
-  </script>
+Papa.parse(csvEquipes,{download:true,header:true,complete:r=>afficherPoules(r.data)});
+Papa.parse(csvMatchesPoules,{download:true,header:true,complete:r=>afficherMatchesPoules(r.data)});
+Papa.parse(csvTableau,{download:true,header:true,complete:r=>remplirTableauFinal(r.data)});
+</script>
 </body>
 </html>
