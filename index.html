@@ -24,7 +24,6 @@
       border-bottom: 2px solid #2c3e50;
       padding-bottom: 8px;
       margin-bottom: 15px;
-      text-align: center;
     }
     .poule {
       margin-bottom: 30px;
@@ -35,17 +34,16 @@
       padding: 10px;
       border-radius: 5px;
       margin: 0;
-      text-align: center; /* centre le texte */
+      text-align: center; /* centrage */
     }
     .team {
       display: flex;
       justify-content: space-between;
       padding: 8px 12px;
       border-bottom: 1px solid #ddd;
-      background: #f9f9f9;
     }
     .team:nth-child(even) {
-      background: #eef3f7;
+      background: #f9f9f9;
     }
     .highlight {
       background: #d6eaff !important;
@@ -59,14 +57,11 @@
     .match {
       padding: 8px 12px;
       border-bottom: 1px solid #ddd;
-      background: #fff;
     }
     .match:nth-child(even) {
       background: #f2f6fa;
     }
-    .bold {
-      font-weight: bold;
-    }
+    .bold { font-weight: bold; }
   </style>
 </head>
 <body>
@@ -100,7 +95,6 @@
 
     function displayPoules(data) {
       const container = document.getElementById("poules-container");
-      const headers = data[0];
       const rows = data.slice(1);
 
       const poules = {};
@@ -108,8 +102,6 @@
         if (!r[0]) return;
         const team = {
           nom: r[1],
-          joueur1: r[2],
-          joueur2: r[3],
           poule: r[4],
           score: r[5],
           victoires: r[6],
@@ -171,7 +163,7 @@
       const container = document.getElementById("finals-container");
       const rows = data.slice(1);
 
-      // Vérifier si tous les matchs de poules ont été joués
+      // Vérifier si tous les matchs de poules sont joués
       const pouleLeft = pouleMatches.slice(1).some(r => (parseInt(r[3]) || 0) === 0 && (parseInt(r[4]) || 0) === 0);
       if (pouleLeft) return;
 
