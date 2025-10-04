@@ -161,39 +161,44 @@ function afficherPoules(data){
 
 let tousMatchsJoues=true;
 function afficherMatchesPoules(data){
-  const cont=document.getElementById('matches-container');
-  cont.innerHTML="";
-  tousMatchsJoues=true;
+  const cont = document.getElementById('matches-container');
+  cont.innerHTML = "";
+  tousMatchsJoues = true;
 
-  data.forEach(row=>{
-    if(!Object.values(row).some(v=>v)) return;
-    const teamA=row["Équipe A"]||row["Equipe A"]||"";
-    const teamB=row["Équipe B"]||row["Equipe B"]||"";
-    const sa=toInt(row["Score A"]);
-    const sb=toInt(row["Score B"]);
-    const container=document.createElement('div'); 
-    container.className='match-row';
+  data.forEach(row => {
+    if(!Object.values(row).some(v => v)) return;
+    const teamA = row["Équipe A"] || row["Equipe A"] || "";
+    const teamB = row["Équipe B"] || row["Equipe B"] || "";
+    const sa = toInt(row["Score A"]);
+    const sb = toInt(row["Score B"]);
 
-    // phase
-    const phase=document.createElement('div'); 
-    phase.className='match-phase'; 
-    phase.textContent=row["Phase"]||"";
+    const container = document.createElement('div'); 
+    container.className = 'match-row';
 
-    // contenu du match
-    const desc=document.createElement('div'); 
-    desc.className='match-desc';
-    if(sa===0 && sb===0){
-      desc.innerHTML=`<span style="color:#b5651d;font-weight:700;">Match à jouer</span>`;
-      tousMatchsJoues=false;
+    const phase = document.createElement('div');
+    phase.className = 'match-phase';
+    phase.textContent = row["Phase"] || "";
+
+    const desc = document.createElement('div'); 
+    desc.className = 'match-desc';
+    
+    if(sa === 0 && sb === 0){
+      desc.innerHTML = `<div style="text-align:center;font-weight:700;color:#b5651d;">Match à jouer</div>`;
+      tousMatchsJoues = false;
     } else {
-      // alignement fixe : équipe (score) — (score) équipe
-      if(sa>sb){
-        desc.innerHTML=`<span style="display:inline-block;width:120px;text-align:right;"><strong>${teamA}</strong> (${sa})</span> — <span style="display:inline-block;width:120px;text-align:left;">(${sb}) ${teamB}</span>`;
-      } else if(sb>sa){
-        desc.innerHTML=`<span style="display:inline-block;width:120px;text-align:right;">${teamA} (${sa})</span> — <span style="display:inline-block;width:120px;text-align:left;"><strong>(${sb}) ${teamB}</strong></span>`;
-      } else {
-        desc.innerHTML=`<span style="display:inline-block;width:120px;text-align:right;">${teamA} (${sa})</span> — <span style="display:inline-block;width:120px;text-align:left;">(${sb}) ${teamB} <em style="margin-left:4px;color:#666">(Égalité)</em></span>`;
-      }
+      let left = teamA + ` (${sa})`;
+      let right = `(${sb}) ` + teamB;
+
+      if(sa > sb) left = `<strong>${left}</strong>`;
+      else if(sb > sa) right = `<strong>${right}</strong>`;
+
+      desc.innerHTML = `
+        <div style="display:flex; justify-content:space-between;">
+          <div style="text-align:right; width:45%">${left}</div>
+          <div style="text-align:center; width:10%">—</div>
+          <div style="text-align:left; width:45%">${right}</div>
+        </div>
+      `;
     }
 
     container.appendChild(phase);
@@ -201,8 +206,8 @@ function afficherMatchesPoules(data){
     cont.appendChild(container);
   });
 
-  if(tousMatchsJoues) document.getElementById('tableFinalSection').style.display='block';
-  else document.getElementById('tableFinalSection').style.display='none';
+  // afficher tableau final uniquement si tous les matchs sont joués
+  document.getElementById('tableFinalSection').style.display = tousMatchsJoues ? 'block' : 'none';
 }
 
 function remplirTableauFinal(data){
@@ -229,4 +234,5 @@ Papa.parse(csvTableau,{download:true,header:true,complete:r=>remplirTableauFinal
 </script>
 </body>
 </html>
+
 
