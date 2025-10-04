@@ -13,7 +13,7 @@
   body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f4f6f8; margin: 20px; color:#222; }
   header { text-align:center; margin-bottom:18px; }
   h1 { margin:0; font-size:1.8rem; color:var(--accent); }
-  h2 { margin: 24px 0 12px; color:#333; }
+  h2 { margin: 24px 0 12px; color:#333; text-align:center; }
 
   /* Poules */
   .poules { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; }
@@ -21,7 +21,7 @@
     background:#fff; border-radius:10px; padding:14px; width:320px;
     box-shadow:0 6px 16px rgba(20,20,30,0.06);
   }
-  .poule-title { font-weight:700; margin-bottom:8px; font-size:1.05rem; color:#222; }
+  .poule-title { font-weight:700; margin-bottom:8px; font-size:1.05rem; color:#222; text-align:center; }
   .team {
     display:grid; grid-template-columns: 1fr 90px 70px; gap:8px; align-items:center;
     padding:10px; margin:6px 0; border-radius:8px; cursor:pointer;
@@ -38,12 +38,10 @@
 
   /* Matches poules */
   .matches { max-width:980px; margin:0 auto 18px; background:#fff; padding:12px; border-radius:8px; box-shadow:0 6px 14px rgba(10,10,20,0.04); }
-  .match-row { display:flex; justify-content:space-between; gap:12px; padding:8px 6px; border-bottom:1px solid #eee; align-items:center; }
+  .match-row { display:flex; justify-content:flex-start; gap:12px; padding:8px 6px; border-bottom:1px solid #eee; align-items:center; }
   .match-row:last-child{ border-bottom:0; }
-  .match-left { display:flex; gap:12px; align-items:center; }
   .match-phase { font-size:.9rem; color:#666; min-width:80px; text-align:left; }
   .match-desc { font-weight:600; }
-  .match-status { font-weight:600; color:#555; }
 
   /* Tableau final */
   .table-wrapper { max-width:1200px; margin:0 auto; }
@@ -58,8 +56,6 @@
   .modal .card { background:#fff; padding:18px; border-radius:8px; width:320px; box-shadow:0 8px 30px rgba(0,0,0,0.2); text-align:center; }
   .modal .close { float:right; cursor:pointer; color:#888; font-size:20px; font-weight:700; }
 
-  /* small button */
-  .btn { background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; }
 </style>
 </head>
 <body>
@@ -74,10 +70,7 @@
 <div class="matches" id="matches-container"></div>
 
 <div id="tableFinalSection" style="display:none">
-  <h2 style="display:flex;align-items:center;gap:12px;">
-    Tableau Final
-    <button id="toggleTableBtn" class="btn" style="margin-left:auto">Masquer le tableau</button>
-  </h2>
+  <h2>Tableau Final</h2>
   <div id="tableFinalWrapper" class="table-wrapper">
     <table id="tableauFinal">
       <thead>
@@ -170,6 +163,8 @@ let tousMatchsJoues=true;
 function afficherMatchesPoules(data){
   const cont=document.getElementById('matches-container');
   cont.innerHTML="";
+  tousMatchsJoues=true;
+
   data.forEach(row=>{
     if(!Object.values(row).some(v=>v)) return;
     const teamA=row["Équipe A"]||row["Equipe A"]||"";
@@ -177,27 +172,27 @@ function afficherMatchesPoules(data){
     const sa=toInt(row["Score A"]);
     const sb=toInt(row["Score B"]);
     const container=document.createElement('div'); container.className='match-row';
-    const left=document.createElement('div'); left.className='match-left';
     const phase=document.createElement('div'); phase.className='match-phase'; phase.textContent=row["Phase"]||"";
     const desc=document.createElement('div'); desc.className='match-desc';
 
     if(sa===0 && sb===0){
-      desc.innerHTML=`${teamA} — ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
+      desc.innerHTML=`${teamA} (0) — (0) ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
       tousMatchsJoues=false;
     } else if(sa>sb){
-      desc.innerHTML=`<strong>${teamA}</strong> (${sa}) — ${teamB} (${sb})`;
+      desc.innerHTML=`<strong>${teamA}</strong> (${sa}) — (${sb}) ${teamB}`;
     } else if(sb>sa){
-      desc.innerHTML=`${teamA} (${sa}) — <strong>${teamB}</strong> (${sb})`;
+      desc.innerHTML=`${teamA} (${sa}) — (${sb}) <strong>${teamB}</strong>`;
     } else {
-      desc.innerHTML=`${teamA} (${sa}) — ${teamB} (${sb}) <em style="margin-left:8px;color:#666">(Égalité)</em>`;
+      desc.innerHTML=`${teamA} (${sa}) — (${sb}) ${teamB} <em style="margin-left:8px;color:#666">(Égalité)</em>`;
     }
 
-    left.appendChild(phase); left.appendChild(desc);
-    container.appendChild(left);
+    container.appendChild(phase);
+    container.appendChild(desc);
     cont.appendChild(container);
   });
 
   if(tousMatchsJoues) document.getElementById('tableFinalSection').style.display='block';
+  else document.getElementById('tableFinalSection').style.display='none';
 }
 
 function remplirTableauFinal(data){
@@ -217,13 +212,6 @@ function remplirTableauFinal(data){
 
 document.getElementById('modalClose').addEventListener('click', ()=>document.getElementById('playerModal').style.display='none');
 window.addEventListener('click', e=>{ if(e.target===document.getElementById('playerModal')) document.getElementById('playerModal').style.display='none'; });
-
-const toggleBtn=document.getElementById('toggleTableBtn');
-toggleBtn.addEventListener('click', ()=>{
-  const wrap=document.getElementById('tableFinalWrapper');
-  if(wrap.style.display==='none'){ wrap.style.display='block'; toggleBtn.textContent='Masquer le tableau'; }
-  else { wrap.style.display='none'; toggleBtn.textContent='Afficher le tableau'; }
-});
 
 Papa.parse(csvEquipes,{download:true,header:true,complete:r=>afficherPoules(r.data)});
 Papa.parse(csvMatchesPoules,{download:true,header:true,complete:r=>afficherMatchesPoules(r.data)});
