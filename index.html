@@ -2,23 +2,23 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Tournoi de Belote</title>
+<title>Tournoi mondial de belote à Vancouver</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   :root{
-    --card-w:320px;
     --accent:#2b7a78;
-    --muted:#666;
+    --qualif:#cce8ff;
   }
   body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f4f6f8; margin: 20px; color:#222; }
   header { text-align:center; margin-bottom:18px; }
-  h1 { margin:0; font-size:1.6rem; color:var(--accent); }
-  h2 { margin: 24px 0 12px; color:#333; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  h1 { margin:0; font-size:1.8rem; color:var(--accent); }
+  h2 { margin: 24px 0 12px; color:#333; }
+
   /* Poules */
   .poules { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; }
   .poule-card {
-    background:#fff; border-radius:10px; padding:14px; width:var(--card-w);
+    background:#fff; border-radius:10px; padding:14px; width:320px;
     box-shadow:0 6px 16px rgba(20,20,30,0.06);
   }
   .poule-title { font-weight:700; margin-bottom:8px; font-size:1.05rem; color:#222; }
@@ -34,17 +34,14 @@
   .victory { color:green; }
   .defeat { color:red; }
 
-  /* classement colors */
-  .first { box-shadow: inset 0 0 0 2px rgba(255,205,60,0.15); background:linear-gradient(180deg,#fffaf0,#fff4b2); }
-  .second { background:#f0f0f0; }
-  .best-third { background:#ffd9b3; }
+  .qualified { background:var(--qualif); }
 
-  /* Matches poules list */
+  /* Matches poules */
   .matches { max-width:980px; margin:0 auto 18px; background:#fff; padding:12px; border-radius:8px; box-shadow:0 6px 14px rgba(10,10,20,0.04); }
   .match-row { display:flex; justify-content:space-between; gap:12px; padding:8px 6px; border-bottom:1px solid #eee; align-items:center; }
   .match-row:last-child{ border-bottom:0; }
   .match-left { display:flex; gap:12px; align-items:center; }
-  .match-phase { font-size:.9rem; color:var(--muted); min-width:80px; text-align:left; }
+  .match-phase { font-size:.9rem; color:#666; min-width:80px; text-align:left; }
   .match-desc { font-weight:600; }
   .match-status { font-weight:600; color:#555; }
 
@@ -61,46 +58,35 @@
   .modal .card { background:#fff; padding:18px; border-radius:8px; width:320px; box-shadow:0 8px 30px rgba(0,0,0,0.2); text-align:center; }
   .modal .close { float:right; cursor:pointer; color:#888; font-size:20px; font-weight:700; }
 
-  /* responsive */
-  @media(max-width:900px){
-    .poule-card{ width:45%; }
-    .team{ grid-template-columns: 1fr 70px 60px; }
-  }
-  @media(max-width:600px){
-    .poule-card{ width:92%; }
-    .poules{ gap:12px; }
-    .poule-card .poule-title{ font-size:1rem; }
-    .team{ grid-template-columns: 1fr 70px 60px; padding:8px; }
-  }
-
   /* small button */
   .btn { background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Tournoi de Belote</h1>
-  <div style="font-size:.95rem; color:#555; margin-top:6px;">Mise à jour automatique depuis Google Sheet</div>
+  <h1>Tournoi mondial de belote à Vancouver</h1>
 </header>
 
 <h2>Poules</h2>
 <div class="poules" id="poules-container"></div>
 
-<h2 style="display:flex;align-items:center;gap:12px;">
-  Tableau Final
-  <button id="toggleTableBtn" class="btn" style="margin-left:auto">Masquer le tableau</button>
-</h2>
-<div id="tableFinalWrapper" class="table-wrapper">
-  <table id="tableauFinal">
-    <thead>
-      <tr><th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
 <h2>Matchs de poule</h2>
 <div class="matches" id="matches-container"></div>
+
+<div id="tableFinalSection" style="display:none">
+  <h2 style="display:flex;align-items:center;gap:12px;">
+    Tableau Final
+    <button id="toggleTableBtn" class="btn" style="margin-left:auto">Masquer le tableau</button>
+  </h2>
+  <div id="tableFinalWrapper" class="table-wrapper">
+    <table id="tableauFinal">
+      <thead>
+        <tr><th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
 <!-- Modal -->
 <div id="playerModal" class="modal" role="dialog" aria-modal="true">
@@ -112,21 +98,16 @@
 </div>
 
 <script>
-/* === URLs CSV (publied) === */
 const csvEquipes = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv";
 const csvTableau = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv";
-/* onglet des matchs de poule (tu as fourni un pubhtml : on prend le gid correspondant en CSV) */
 const csvMatchesPoules = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=285227174&single=true&output=csv";
 
-/* helper pour safely lire nombre */
-function toInt(v){ const n = parseInt((v||"").toString().replace(/[^0-9-]/g,'')); return isNaN(n)?0:n; }
+function toInt(v){ const n=parseInt((v||"").toString().replace(/[^0-9-]/g,'')); return isNaN(n)?0:n; }
 
-/* Afficher poules (cartes) */
 function afficherPoules(data){
   const cont = document.getElementById('poules-container');
   cont.innerHTML = "";
-  const poules = {};
-  // Grouper par poule
+  const poules={};
   data.forEach(r=>{
     const pou = r.Poule && r.Poule.toString().trim();
     if(!pou) return;
@@ -134,138 +115,119 @@ function afficherPoules(data){
     poules[pou].push(r);
   });
 
-  // calcul classement local par poule + collecter 3e
-  const meilleurs3 = [];
+  const meilleurs3=[];
   for(const p in poules){
     poules[p].sort((a,b)=>{
-      const va = toInt(a.Victoires), vb = toInt(b.Victoires);
+      const va=toInt(a.Victoires), vb=toInt(b.Victoires);
       if(vb!==va) return vb-va;
-      return toInt(b["Score total"]) - toInt(a["Score total"]);
+      return toInt(b["Score total"])-toInt(a["Score total"]);
     });
     if(poules[p][2]) meilleurs3.push(poules[p][2]);
   }
   meilleurs3.sort((a,b)=>toInt(b["Score total"])-toInt(a["Score total"]));
-  const top2trois = meilleurs3.slice(0,2);
+  const top2trois=meilleurs3.slice(0,2);
 
-  // construire cartes
   Object.keys(poules).sort().forEach(p=>{
-    const card = document.createElement('div'); card.className='poule-card';
-    const title = document.createElement('div'); title.className='poule-title'; title.textContent = "Poule " + p;
+    const card=document.createElement('div'); card.className='poule-card';
+    const title=document.createElement('div'); title.className='poule-title'; title.textContent="Poule "+p;
     card.appendChild(title);
 
-    poules[p].forEach((team, idx) => {
-      const div = document.createElement('div'); div.className = 'team poule-' + p;
-      // classes classement
-      if(idx===0) div.classList.add('first');
-      else if(idx===1) div.classList.add('second');
-      else if(top2trois.includes(team)) div.classList.add('best-third');
+    poules[p].forEach((team, idx)=>{
+      const div=document.createElement('div'); div.className='team';
+      const name=team["Nom de l’équipe"]||team["Nom équipe"]||team["Nom"]||"";
+      const vic=team["Victoires"]||"0";
+      const def=team["Defaites"]||"0";
+      const score=team["Score total"]||"0";
 
-      const name = team["Nom de l’équipe"] || team["Nom équipe"] || team["Nom"] || "";
-      const vic = team["Victoires"] || team["Victoire"] || "0";
-      const def = team["Defaites"] || team["Défaites"] || "0";
-      const score = team["Score total"] || team["Score"] || "0";
+      // emoji classement
+      let medal="";
+      if(idx===0) medal="🥇 ";
+      else if(idx===1) medal="🥈 ";
+      else if(idx===2) medal="🥉 ";
+      else if(idx===3) medal="💀 ";
 
-      div.innerHTML = `<div class="name">${name}</div>
-                       <div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div>
-                       <div class="score">${score}</div>`;
+      if(idx<2 || top2trois.includes(team)) div.classList.add('qualified');
 
-      // modal players
-      div.addEventListener('click', (e)=>{
+      div.innerHTML=`<div class="name">${medal}${name}</div>
+                     <div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div>
+                     <div class="score">${score}</div>`;
+
+      div.addEventListener('click', e=>{
         e.stopPropagation();
-        document.getElementById('modalTeamName').textContent = name;
-        const j1 = team["Joueur 1"] || team["Joueur1"] || team["Player 1"] || "";
-        const j2 = team["Joueur 2"] || team["Joueur2"] || team["Player 2"] || "";
-        document.getElementById('modalPlayers').textContent = [j1,j2].filter(Boolean).join(' & ');
+        document.getElementById('modalTeamName').textContent=name;
+        const j1=team["Joueur 1"]||team["Joueur1"]||"";
+        const j2=team["Joueur 2"]||team["Joueur2"]||"";
+        document.getElementById('modalPlayers').textContent=[j1,j2].filter(Boolean).join(' & ');
         document.getElementById('playerModal').style.display='flex';
       });
-
       card.appendChild(div);
     });
-
     cont.appendChild(card);
   });
 }
 
-/* Matches de poule - format attendu : Équipe A | Code B | Équipe B | Score A | Score B
-   On affichera : Phase/label si dispo sinon vide.
-*/
+let tousMatchsJoues=true;
 function afficherMatchesPoules(data){
-  const cont = document.getElementById('matches-container');
-  cont.innerHTML = "";
+  const cont=document.getElementById('matches-container');
+  cont.innerHTML="";
   data.forEach(row=>{
-    // Si ligne vide : skip
-    if(!Object.values(row).some(v=>v!=="" && v!==null && v!==undefined)) return;
-    const teamA = row["Équipe A"] || row["Equipe A"] || row["EquipeA"] || row["Team A"] || row["Equipe_A"] || "";
-    const teamB = row["Équipe B"] || row["Equipe B"] || row["EquipeB"] || row["Team B"] || row["Equipe_B"] || "";
-    // score columns: try variants
-    const sa = toInt(row["Score A"] || row["ScoreA"] || row["Score_A"] || row["Score a"] || row["Score"]);
-    const sb = toInt(row["Score B"] || row["ScoreB"] || row["Score_B"] || row["Score b"] || row["Score"]);
-    const container = document.createElement('div'); container.className='match-row';
+    if(!Object.values(row).some(v=>v)) return;
+    const teamA=row["Équipe A"]||row["Equipe A"]||"";
+    const teamB=row["Équipe B"]||row["Equipe B"]||"";
+    const sa=toInt(row["Score A"]);
+    const sb=toInt(row["Score B"]);
+    const container=document.createElement('div'); container.className='match-row';
+    const left=document.createElement('div'); left.className='match-left';
+    const phase=document.createElement('div'); phase.className='match-phase'; phase.textContent=row["Phase"]||"";
+    const desc=document.createElement('div'); desc.className='match-desc';
 
-    const left = document.createElement('div'); left.className='match-left';
-    const phase = document.createElement('div'); phase.className='match-phase'; phase.textContent = row["Phase"] || row["Journee"] || "";
-    const desc = document.createElement('div'); desc.className='match-desc';
-
-    // logique d'affichage
     if(sa===0 && sb===0){
-      desc.innerHTML = `${teamA} — ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
+      desc.innerHTML=`${teamA} — ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
+      tousMatchsJoues=false;
     } else if(sa>sb){
-      desc.innerHTML = `<strong>${teamA}</strong> (${sa}) — ${teamB} (${sb})`;
+      desc.innerHTML=`<strong>${teamA}</strong> (${sa}) — ${teamB} (${sb})`;
     } else if(sb>sa){
-      desc.innerHTML = `${teamA} (${sa}) — <strong>${teamB}</strong> (${sb})`;
-    } else { // égalité
-      desc.innerHTML = `${teamA} (${sa}) — ${teamB} (${sb}) <em style="margin-left:8px;color:#666">(Égalité)</em>`;
+      desc.innerHTML=`${teamA} (${sa}) — <strong>${teamB}</strong> (${sb})`;
+    } else {
+      desc.innerHTML=`${teamA} (${sa}) — ${teamB} (${sb}) <em style="margin-left:8px;color:#666">(Égalité)</em>`;
     }
 
     left.appendChild(phase); left.appendChild(desc);
     container.appendChild(left);
-
-    const status = document.createElement('div'); status.className='match-status';
-    if(sa===0 && sb===0) status.textContent = "À jouer";
-    else if(sa>sb) status.textContent = teamA;
-    else if(sb>sa) status.textContent = teamB;
-    else status.textContent = "Égalité";
-    container.appendChild(status);
-
     cont.appendChild(container);
   });
+
+  if(tousMatchsJoues) document.getElementById('tableFinalSection').style.display='block';
 }
 
-/* Remplir tableau final */
 function remplirTableauFinal(data){
-  const tbody = document.querySelector('#tableauFinal tbody');
-  tbody.innerHTML = "";
+  const tbody=document.querySelector('#tableauFinal tbody');
+  tbody.innerHTML="";
   data.forEach(row=>{
-    if(!Object.values(row).some(v=>v!=="" && v!=null)) return;
-    const tr = document.createElement('tr');
-    const cols = ["Phase","Match","Équipe A","Équipe B","Score A","Score B","Vainqueur"];
-    const html = cols.map(c=>{
-      let v = row[c] || row[c.replace('É','E')] || row[c.replace(' ','_')] || "";
-      // si both scores zero display "Match à jouer" in Vainqueur cell? user wanted for poules only; keep winner logic for final
-      return `<td${(c==="Vainqueur" && v!=="") ? ' class="winner"':''}>${v}</td>`;
+    if(!Object.values(row).some(v=>v)) return;
+    const tr=document.createElement('tr');
+    const cols=["Phase","Match","Équipe A","Équipe B","Score A","Score B","Vainqueur"];
+    tr.innerHTML=cols.map(c=>{
+      let v=row[c]||row[c.replace('É','E')]||"";
+      return `<td${(c==="Vainqueur" && v)?' class="winner"':''}>${v}</td>`;
     }).join("");
-    tr.innerHTML = html;
     tbody.appendChild(tr);
   });
 }
 
-/* Modal close */
-document.getElementById('modalClose')?.addEventListener('click', ()=>document.getElementById('playerModal').style.display='none');
-window.addEventListener('click', (e)=>{ if(e.target===document.getElementById('playerModal')) document.getElementById('playerModal').style.display='none'; });
+document.getElementById('modalClose').addEventListener('click', ()=>document.getElementById('playerModal').style.display='none');
+window.addEventListener('click', e=>{ if(e.target===document.getElementById('playerModal')) document.getElementById('playerModal').style.display='none'; });
 
-/* toggle tableau final via simple button (no arrows) */
-const toggleBtn = document.getElementById('toggleTableBtn');
-toggleBtn.addEventListener('click', ()=> {
-  const wrap = document.getElementById('tableFinalWrapper');
+const toggleBtn=document.getElementById('toggleTableBtn');
+toggleBtn.addEventListener('click', ()=>{
+  const wrap=document.getElementById('tableFinalWrapper');
   if(wrap.style.display==='none'){ wrap.style.display='block'; toggleBtn.textContent='Masquer le tableau'; }
   else { wrap.style.display='none'; toggleBtn.textContent='Afficher le tableau'; }
 });
 
-/* Charger CSVs (PapaParse) */
-Papa.parse(csvEquipes, { download:true, header:true, complete: r => { afficherPoules(r.data); } });
-Papa.parse(csvTableau, { download:true, header:true, complete: r => { remplirTableauFinal(r.data); } });
-Papa.parse(csvMatchesPoules, { download:true, header:true, complete: r => { afficherMatchesPoules(r.data); } });
-
+Papa.parse(csvEquipes,{download:true,header:true,complete:r=>afficherPoules(r.data)});
+Papa.parse(csvMatchesPoules,{download:true,header:true,complete:r=>afficherMatchesPoules(r.data)});
+Papa.parse(csvTableau,{download:true,header:true,complete:r=>remplirTableauFinal(r.data)});
 </script>
 </body>
 </html>
