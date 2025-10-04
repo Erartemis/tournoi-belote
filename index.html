@@ -1,188 +1,177 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Tournoi de Belote</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<style>
-body { font-family: 'Segoe UI', sans-serif; background: #f7f7f7; margin: 20px; }
-h1 { text-align: center; margin-bottom: 30px; color: #333; }
-h2 { margin-top: 40px; color: #555; }
+  <meta charset="UTF-8">
+  <title>Tournoi de Belote</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f7f7f7; margin: 20px; }
+    h1 { text-align: center; margin-bottom: 30px; color: #333; }
+    h2 { margin-top: 40px; color: #555; cursor: pointer; }
+    .poules { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+    .poule-card {
+      background: #fff; border-radius: 8px; padding: 15px; width: 300px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;
+    }
+    .poule-card:hover { transform: translateY(-5px); }
 
-.poules { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-.poule-card {
-  background: #fff; border-radius: 8px; padding: 15px; width: 300px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;
-}
-.poule-card:hover { transform: translateY(-5px); }
-.poule-title { font-weight: bold; font-size: 1.2em; margin-bottom: 10px; cursor: pointer; }
+    .poule-title { font-weight: bold; font-size: 1.2em; margin-bottom: 10px; }
+    .team {
+      display: grid; grid-template-columns: 1fr 100px 80px; gap: 10px;
+      padding: 8px; margin: 5px 0; border-radius: 4px; align-items: center;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .team:hover { background-color: #d0f0ff; }
 
-.team {
-  display: grid; grid-template-columns: 1fr 80px 80px; gap: 10px;
-  padding: 8px; margin: 5px 0; border-radius: 4px; align-items: center;
-  cursor: pointer; transition: background 0.2s;
-}
-.team:hover { background-color: #d0f0ff; }
+    .victory { color: green; font-weight: bold; }
+    .defeat { color: red; font-weight: bold; }
 
-.victory { color: green; font-weight: bold; }
-.defeat { color: red; font-weight: bold; }
+    .first { background-color: #fff4b2; }
+    .second { background-color: #e0e0e0; }
+    .best-third { background-color: #ffb266; }
 
-/* Couleurs classement */
-.first { background-color: #fff4b2; }   /* jaune clair */
-.second { background-color: #e0e0e0; }  /* gris clair */
-.best-third { background-color: #ffb266; } /* orange foncé */
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    th, td { padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
+    th { background-color: #333; color: #fff; }
+    tr:hover { background-color: #f1f1f1; }
+    .winner { background-color: #b2ffb2 !important; font-weight: bold; }
 
-/* Tableau final */
-table { border-collapse: collapse; width: 100%; margin-top: 20px; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-th, td { padding: 10px; text-align: center; border-bottom: 1px solid #ddd; }
-th { background-color: #333; color: #fff; }
-tr:hover { background-color: #f1f1f1; }
-.winner { background-color: #b2ffb2 !important; font-weight: bold; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
+             background-color: rgba(0,0,0,0.5); }
+    .modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: black; }
 
-/* Modal */
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
-         background-color: rgba(0,0,0,0.5); }
-.modal-content { background-color: #fff; margin: 15% auto; padding: 20px; border-radius: 8px; width: 300px; text-align: center; }
-.close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-.close:hover { color: black; }
-
-@media(max-width: 600px) { .poules { flex-direction: column; align-items: center; } }
-</style>
+    @media(max-width: 600px) { .poules { flex-direction: column; align-items: center; } }
+  </style>
 </head>
 <body>
 
-<h1>Tournoi de Belote</h1>
+  <h1>Tournoi de Belote</h1>
 
-<h2>Poules</h2>
-<div class="poules" id="poules-container"></div>
+  <h2 onclick="toggleSection('poules')">Poules ▲/▼</h2>
+  <div class="poules" id="poules-container"></div>
 
-<h2>Tableau Final</h2>
-<table id="tableauFinal">
-  <thead>
-    <tr>
-      <th>Phase</th>
-      <th>Match</th>
-      <th>Équipe A</th>
-      <th>Équipe B</th>
-      <th>Score A</th>
-      <th>Score B</th>
-      <th>Vainqueur</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<!-- Modal -->
-<div id="playerModal" class="modal">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <h3 id="modalTeamName"></h3>
-    <p id="modalPlayers"></p>
+  <h2 onclick="toggleSection('tableauFinal')">Tableau Final ▲/▼</h2>
+  <div id="tableFinalWrapper">
+    <table id="tableauFinal">
+      <thead>
+        <tr>
+          <th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
-</div>
 
-<script>
-const csvEquipes = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv";
-const csvTableau = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv";
+  <div id="playerModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3 id="modalTeamName"></h3>
+      <p id="modalPlayers"></p>
+    </div>
+  </div>
 
-function afficherPoules(data) {
-  const poulesContainer = document.getElementById("poules-container");
-  poulesContainer.innerHTML = "";
-  const poules = {};
-  const meilleursTroisiemes = [];
+  <script>
+    const csvEquipes = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv";
+    const csvTableau = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv";
 
-  data.forEach(row => {
-    if(row.Poule && row.ID) {
-      if(!poules[row.Poule]) poules[row.Poule] = [];
-      poules[row.Poule].push(row);
+    function toggleSection(id) {
+      const el = document.getElementById(id === 'poules' ? 'poules-container' : 'tableFinalWrapper');
+      if (el.style.display === 'none') el.style.display = '';
+      else el.style.display = 'none';
     }
-  });
 
-  // Déterminer classement dans chaque poule
-  for(const poule in poules) {
-    poules[poule].sort((a,b) => {
-      const vicA = parseInt(a.Victoires)||0;
-      const vicB = parseInt(b.Victoires)||0;
-      if(vicB!==vicA) return vicB-vicA;
-      const scoreA = parseInt(a["Score total"])||0;
-      const scoreB = parseInt(b["Score total"])||0;
-      return scoreB-scoreA;
-    });
-    // Ajouter 3e de chaque poule pour comparaison globale
-    if(poules[poule][2]) meilleursTroisiemes.push(poules[poule][2]);
-  }
+    function afficherPoules(data) {
+      const poulesContainer = document.getElementById("poules-container");
+      poulesContainer.innerHTML = "";
+      const poules = {};
+      const meilleursTroisiemes = [];
 
-  // Trouver les 2 meilleurs troisièmes
-  meilleursTroisiemes.sort((a,b) => (parseInt(b["Score total"]||0) - parseInt(a["Score total"]||0)));
-  const top2Troisiemes = meilleursTroisiemes.slice(0,2);
-
-  for(const poule in poules) {
-    const card = document.createElement("div");
-    card.className = "poule-card";
-
-    const title = document.createElement("div");
-    title.className = "poule-title";
-    title.textContent = "Poule " + poule;
-    title.addEventListener("click", () => {
-      const teams = card.querySelectorAll(".team");
-      teams.forEach(t => t.style.display = t.style.display === "none" ? "grid" : "grid");
-    });
-    card.appendChild(title);
-
-    poules[poule].forEach((team,index) => {
-      const div = document.createElement("div");
-      div.className = "team poule-" + poule;
-
-      // Classement visuel
-      if(index===0) div.classList.add("first");
-      else if(index===1) div.classList.add("second");
-      else if(top2Troisiemes.includes(team)) div.classList.add("best-third");
-
-      const vic = team["Victoires"] || "0";
-      const def = team["Defaites"] || "0";
-      const score = team["Score total"] || "0";
-
-      div.innerHTML = `<div>${team["Nom de l’équipe"]}</div>
-                       <div><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div>
-                       <div>${score}</div>`;
-
-      div.addEventListener("click", () => {
-        document.getElementById("modalTeamName").textContent = team["Nom de l’équipe"];
-        document.getElementById("modalPlayers").textContent = team["Joueur 1"] + " & " + team["Joueur 2"];
-        document.getElementById("playerModal").style.display = "block";
+      data.forEach(row => {
+        if (row.Poule && row.ID) {
+          if (!poules[row.Poule]) poules[row.Poule] = [];
+          poules[row.Poule].push(row);
+        }
       });
 
-      card.appendChild(div);
-    });
+      for (const p in poules) {
+        poules[p].sort((a,b) => {
+          const vA = parseInt(a.Victoires)||0, vB = parseInt(b.Victoires)||0;
+          if (vB !== vA) return vB - vA;
+          const sA = parseInt(a["Score total"])||0, sB = parseInt(b["Score total"])||0;
+          return sB - sA;
+        });
+        if (poules[p][2]) meilleursTroisiemes.push(poules[p][2]);
+      }
 
-    poulesContainer.appendChild(card);
-  }
-}
+      meilleursTroisiemes.sort((a,b) => (parseInt(b["Score total"]||0) - parseInt(a["Score total"]||0)));
+      const top2 = meilleursTroisiemes.slice(0,2);
 
-// Modal close
-document.querySelector(".close").onclick = () => { document.getElementById("playerModal").style.display = "none"; }
-window.onclick = event => { if(event.target==document.getElementById("playerModal")) document.getElementById("playerModal").style.display = "none"; }
+      for (const p in poules) {
+        const card = document.createElement("div");
+        card.className = "poule-card";
+        const title = document.createElement("div");
+        title.className = "poule-title";
+        title.textContent = "Poule " + p;
+        title.onclick = () => {
+          const teams = card.querySelectorAll(".team");
+          teams.forEach(t => {
+            t.style.display = (t.style.display === "none") ? "grid" : "grid";
+          });
+        };
+        card.appendChild(title);
 
-// Tableau final
-function remplirTableauFinal(data) {
-  const tbody = document.querySelector("#tableauFinal tbody");
-  tbody.innerHTML = "";
-  data.forEach(row => {
-    if(Object.values(row).some(v=>v!=="")) {
-      const tr = document.createElement("tr");
-      const values = ["Phase","Match","Équipe A","Équipe B","Score A","Score B","Vainqueur"].map(col=>{
-        let val = row[col] || "";
-        return `<td${(col==="Vainqueur" && val!=="") ? ' class="winner"' : ''}>${val}</td>`;
-      }).join("");
-      tr.innerHTML = values;
-      tbody.appendChild(tr);
+        poules[p].forEach((team, idx) => {
+          const div = document.createElement("div");
+          div.className = "team poule-" + p;
+          if (idx === 0) div.classList.add("first");
+          else if (idx === 1) div.classList.add("second");
+          else if (top2.includes(team)) div.classList.add("best-third");
+
+          const vic = team["Victoires"] || "0";
+          const def = team["Defaites"] || "0";
+          const score = team["Score total"] || "0";
+
+          div.innerHTML = `<div>${team["Nom de l’équipe"]}</div>
+                           <div><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div>
+                           <div>${score}</div>`;
+
+          div.onclick = () => {
+            document.getElementById("modalTeamName").textContent = team["Nom de l’équipe"];
+            document.getElementById("modalPlayers").textContent = team["Joueur 1"] + " & " + team["Joueur 2"];
+            document.getElementById("playerModal").style.display = "block";
+          };
+
+          card.appendChild(div);
+        });
+
+        poulesContainer.appendChild(card);
+      }
     }
-  });
-}
 
-// Charger CSV
-Papa.parse(csvEquipes, { download: true, header: true, complete: results => afficherPoules(results.data) });
-Papa.parse(csvTableau, { download: true, header: true, complete: results => remplirTableauFinal(results.data) });
-</script>
+    function remplirTableauFinal(data) {
+      const tbody = document.querySelector("#tableauFinal tbody");
+      tbody.innerHTML = "";
+      data.forEach(row => {
+        if (Object.values(row).some(v => v !== "")) {
+          const tr = document.createElement("tr");
+          const vals = ["Phase","Match","Équipe A","Équipe B","Score A","Score B","Vainqueur"].map(col => {
+            let v = row[col] || "";
+            return `<td${(col==="Vainqueur" && v!=="") ? ' class="winner"' : ''}>${v}</td>`;
+          }).join("");
+          tr.innerHTML = vals;
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    document.querySelector(".close").onclick = () => { document.getElementById("playerModal").style.display = "none"; }
+    window.onclick = evt => { if (evt.target === document.getElementById("playerModal")) document.getElementById("playerModal").style.display = "none"; }
+
+    Papa.parse(csvEquipes, { download: true, header: true, complete: r => afficherPoules(r.data) });
+    Papa.parse(csvTableau, { download: true, header: true, complete: r => remplirTableauFinal(r.data) });
+  </script>
+
 </body>
 </html>
