@@ -55,7 +55,64 @@
   .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:999; }
   .modal .card { background:#fff; padding:18px; border-radius:8px; width:320px; box-shadow:0 8px 30px rgba(0,0,0,0.2); text-align:center; }
   .modal .close { float:right; cursor:pointer; color:#888; font-size:20px; font-weight:700; }
-
+  
+  /* Ajoute ces styles pour les matchs par poule */
+  .poule-matches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    margin: 20px auto;
+    max-width: 1000px;
+  }
+  .poule-match-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px;
+    width: 280px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .poule-match-title {
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-align: center;
+    color: var(--accent);
+  }
+  .match-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 4px 8px;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #f9f9f9;
+  }
+  .match-team {
+    font-weight: 600;
+    padding: 4px 8px;
+    text-align: left;
+    border-radius: 4px;
+  }
+  .match-score {
+    font-weight: 700;
+    padding: 4px 8px;
+    text-align: right;
+    border-radius: 4px;
+  }
+  .match-tbd {
+    grid-column: 2;
+    font-style: italic;
+    color: #666;
+    padding: 4px 8px;
+    text-align: right;
+  }
+  .match-phase {
+    font-size: 0.85rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 6px;
+  }
 </style>
 </head>
 <body>
@@ -160,65 +217,6 @@ function afficherPoules(data){
 }
 
 let tousMatchsJoues=true;
-<style>
-  /* Ajoute ces styles pour les matchs par poule */
-  .poule-matches {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    margin: 20px auto;
-    max-width: 1000px;
-  }
-  .poule-match-card {
-    background: #fff;
-    border-radius: 10px;
-    padding: 12px;
-    width: 280px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  }
-  .poule-match-title {
-    font-weight: 700;
-    margin-bottom: 10px;
-    text-align: center;
-    color: var(--accent);
-  }
-  .match-box {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 4px 8px;
-    margin-bottom: 12px;
-    padding: 8px;
-    border-radius: 6px;
-    background: #f9f9f9;
-  }
-  .match-team {
-    font-weight: 600;
-    padding: 4px 8px;
-    text-align: left;
-    border-radius: 4px;
-  }
-  .match-score {
-    font-weight: 700;
-    padding: 4px 8px;
-    text-align: right;
-    border-radius: 4px;
-  }
-  .match-tbd {
-    grid-column: 2;
-    font-style: italic;
-    color: #666;
-    padding: 4px 8px;
-    text-align: right;
-  }
-  .match-phase {
-    font-size: 0.85rem;
-    color: #666;
-    text-align: center;
-    margin-bottom: 6px;
-  }
-</style>
 
 <h2>Matchs de poules</h2>
 <div class="poule-matches" id="matches-container"></div>
@@ -326,5 +324,6 @@ Papa.parse(csvTableau,{download:true,header:true,complete:r=>remplirTableauFinal
 </script>
 </body>
 </html>
+
 
 
