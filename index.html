@@ -181,7 +181,10 @@ function afficherMatchesPoules(data){
 
     const desc = document.createElement('div'); 
     desc.className = 'match-desc';
-    
+    desc.style.whiteSpace = "nowrap";  // force tout sur une seule ligne
+    desc.style.overflow = "hidden";
+    desc.style.textOverflow = "ellipsis";
+
     if(sa === 0 && sb === 0){
       desc.innerHTML = `<div style="text-align:center;font-weight:700;color:#b5651d;">Match à jouer</div>`;
       tousMatchsJoues = false;
@@ -193,10 +196,10 @@ function afficherMatchesPoules(data){
       else if(sb > sa) right = `<strong>${right}</strong>`;
 
       desc.innerHTML = `
-        <div style="display:flex; justify-content:space-between;">
-          <div style="text-align:right; width:45%">${left}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="text-align:right; width:45%; overflow:hidden; text-overflow:ellipsis;">${left}</div>
           <div style="text-align:center; width:10%">—</div>
-          <div style="text-align:left; width:45%">${right}</div>
+          <div style="text-align:left; width:45%; overflow:hidden; text-overflow:ellipsis;">${right}</div>
         </div>
       `;
     }
@@ -206,7 +209,6 @@ function afficherMatchesPoules(data){
     cont.appendChild(container);
   });
 
-  // afficher tableau final uniquement si tous les matchs sont joués
   document.getElementById('tableFinalSection').style.display = tousMatchsJoues ? 'block' : 'none';
 }
 
@@ -234,5 +236,6 @@ Papa.parse(csvTableau,{download:true,header:true,complete:r=>remplirTableauFinal
 </script>
 </body>
 </html>
+
 
 
