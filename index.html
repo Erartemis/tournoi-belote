@@ -161,38 +161,66 @@ function afficherPoules(data){
 
 let tousMatchsJoues=true;
 function afficherMatchesPoules(data){
-  const cont=document.getElementById('matches-container');
-  cont.innerHTML="";
-  tousMatchsJoues=true;
+  const cont = document.getElementById('matches-container');
+  cont.innerHTML = "";
+  let tousMatchsJoues = true;
 
+  /* ---------- regroupement par poule ---------- */
+  const poules = { A:[], B:[], C:[] };
   data.forEach(row=>{
     if(!Object.values(row).some(v=>v)) return;
-    const teamA=row["Équipe A"]||row["Equipe A"]||"";
-    const teamB=row["Équipe B"]||row["Equipe B"]||"";
-    const sa=toInt(row["Score A"]);
-    const sb=toInt(row["Score B"]);
-    const container=document.createElement('div'); container.className='match-row';
-    const phase=document.createElement('div'); phase.className='match-phase'; phase.textContent=row["Phase"]||"";
-    const desc=document.createElement('div'); desc.className='match-desc';
-
-    if(sa===0 && sb===0){
-      desc.innerHTML=`${teamA} (0) — (0) ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
-      tousMatchsJoues=false;
-    } else if(sa>sb){
-      desc.innerHTML=`<strong>${teamA}</strong> (${sa}) — (${sb}) ${teamB}`;
-    } else if(sb>sa){
-      desc.innerHTML=`${teamA} (${sa}) — (${sb}) <strong>${teamB}</strong>`;
-    } else {
-      desc.innerHTML=`${teamA} (${sa}) — (${sb}) ${teamB} <em style="margin-left:8px;color:#666">(Égalité)</em>`;
-    }
-
-    container.appendChild(phase);
-    container.appendChild(desc);
-    cont.appendChild(container);
+    const phase = (row.Phase||'').toUpperCase();
+    let cle = '';
+    if(phase.includes('A')) cle='A';
+    else if(phase.includes('B')) cle='B';
+    else if(phase.includes('C')) cle='C';
+    if(cle) poules[cle].push(row);
   });
 
-  if(tousMatchsJoues) document.getElementById('tableFinalSection').style.display='block';
-  else document.getElementById('tableFinalSection').style.display='none';
+  /* ---------- affichage ---------- */
+  ['A','B','C'].forEach(p=>{
+    const liste = poules[p];
+    if(!liste.length) return;
+
+    /* séparer joués / à jouer */
+    const joues   = liste.filter(r=> toInt(r["Score A"])!==0 || toInt(r["Score B"])!==0 );
+    const aJouer  = liste.filter(r=> toInt(r["Score A"])===0 && toInt(r["Score B"])===0 );
+    if(aJouer.length) tousMatchsJoues = false;
+
+    /* titre poule */
+    const titre = document.createElement('h3');
+    titre.textContent = `Poule ${p}`;
+    cont.appendChild(titre);
+
+    /* matchs joués d’abord */
+    [...joues, ...aJouer].forEach(row=>{
+      const teamA = row["Équipe A"] || row["Equipe A"] || "";
+      const teamB = row["Équipe B"] || row["Equipe B"] || "";
+      const sa    = toInt(row["Score A"]);
+      const sb    = toInt(row["Score B"]);
+
+      const container = document.createElement('div'); container.className = 'match-row';
+      const phase     = document.createElement('div'); phase.className = 'match-phase'; phase.textContent = row.Phase||"";
+      const desc      = document.createElement('div'); desc.className  = 'match-desc';
+
+      if(sa===0 && sb===0){
+        desc.innerHTML = `${teamA} (0) — (0) ${teamB} <span style="color:#b5651d;font-weight:700;margin-left:8px;">(Match à jouer)</span>`;
+      }else if(sa > sb){
+        desc.innerHTML = `<strong>${teamA}</strong> (${sa}) — (${sb}) ${teamB}`;
+      }else if(sb > sa){
+        desc.innerHTML = `${teamA} (${sa}) — (${sb}) <strong>${teamB}</strong>`;
+      }else{
+        desc.innerHTML = `${teamA} (${sa}) — (${sb}) ${teamB} <em style="margin-left:8px;color:#666">(Égalité)</em>`;
+      }
+
+      container.appendChild(phase);
+      container.appendChild(desc);
+      cont.appendChild(container);
+    });
+  });
+
+  /* affichage/masquage tableau final */
+  document.getElementById('tableFinalSection').style.display = tousMatchsJoues ? 'block' : 'none';
 }
 
 function remplirTableauFinal(data){
@@ -219,4 +247,5 @@ Papa.parse(csvTableau,{download:true,header:true,complete:r=>remplirTableauFinal
 </script>
 </body>
 </html>
+
 
