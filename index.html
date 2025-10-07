@@ -321,11 +321,15 @@
 
                     // Mettre en gras le nom du gagnant
                     if (!isUnplayed) {
-                        if (totalScoreA > totalScoreB) {
+                        // Utiliser la colonne "Vainqueur" pour déterminer le gagnant
+                        const vainqueur = match["Vainqueur"] || match["vainqueur"] || "";
+
+                        if (vainqueur === teamA) {
                             teamAName.style.fontWeight = 'bold';
-                        } else if (totalScoreB > totalScoreA) {
+                        } else if (vainqueur === teamB) {
                             teamBName.style.fontWeight = 'bold';
                         }
+                        // Si Vainqueur est vide ou ne correspond à aucune équipe, on ne met rien en gras
                     } else {
                         // Ajouter "Match à jouer" centré verticalement
                         const unplayed = document.createElement('div');
@@ -340,6 +344,7 @@
                 cont.appendChild(pouleCard);
             }
         }
+
 
         function remplirTableauFinal(data) {
             const tbody = document.querySelector('#tableauFinal tbody');
