@@ -86,59 +86,99 @@
         function toInt(v) { const n = parseInt((v || "").toString().replace(/[^0-9-]/g, '')); return isNaN(n) ? 0 : n; }
 
         function afficherPoules(data) {
-            const cont = document.getElementById('poules-container');
-            cont.innerHTML = "";
-            const poules = {};
-            data.forEach(r => {
-                const pou = r.Poule && r.Poule.toString().trim();
-                if (!pou) return;
-                if (!poules[pou]) poules[pou] = [];
-                poules[pou].push(r);
+    const cont = document.getElementById('poules-container');
+    cont.innerHTML = "";
+    const poules = {};
+    data.forEach(r => {
+        const pou = r.Poule && r.Poule.toString().trim();
+        if (!pou) return;
+        if (!poules[pou]) poules[pou] = [];
+        poules[pou].push(r);
+    });
+
+    // Tri personnalisé pour chaque poule
+    for (const p in poules) {
+        poules[p].sort((a, b) => {
+            const vicA = toInt(a.Victoires);
+            const vicB = toInt(b.Victoires);
+            const defA = toInt(a.Defaites);
+            const defB = toInt(b.Defaites);
+            const scoreA = toInt(a["Score total"]);
+            const scoreB = toInt(b["Score total"]);
+
+            // 1. D'abord les équipes avec des victoires (par ordre décroissant)
+            if (vicA > 0 && vicB === 0) return -1;
+            if (vicB > 0 && vicA === 0) return 1;
+            if (vicA > vicB) return -1;
+            if (vicB > vicA) return 1;
+
+            // 2. Ensuite les équipes sans victoire mais sans défaite (0-0)
+            if (vicA === 0 && defA === 0 && defB > 0) return -1;
+            if (vicB === 0 && defB === 0 && defA > 0) return 1;
+
+            // 3. Enfin les équipes avec des défaites (0 victoires, ≥1 défaite)
+            if (defA > 0 && defB === 0) return 1;
+            if (defB > 0 && defA === 0) return -1;
+
+            // 4. Si tout le reste est égal, trier par score total
+            return scoreB - scoreA;
+        });
+    }
+
+    const meilleurs3 = [];
+    for (const p in poules) {
+        if (poules[p][2]) meilleurs3.push(poules[p][2]);
+    }
+
+    meilleurs3.sort((a, b) => toInt(b["Score total"]) - toInt(a["Score total"]));
+    const top2trois = meilleurs3.slice(0, 2);
+
+    Object.keys(poules).sort().forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'poule-card';
+        const title = document.createElement('div');
+        title.className = 'poule-title';
+        title.textContent = "Poule " + p;
+        card.appendChild(title);
+
+        const header = document.createElement('div');
+        header.className = 'team-header';
+        header.innerHTML = `<div>Equipe</div><div style="text-align: center;">Victoires/Defaites</div><div style="text-align: right;">Score</div>`;
+        card.appendChild(header);
+
+        poules[p].forEach((team, idx) => {
+            const div = document.createElement('div');
+            div.className = 'team';
+            const name = team["Nom de l’équipe"] || team["Nom equipe"] || team["Nom"] || "";
+            const vic = team.Victoires || "0";
+            const def = team.Defaites || "0";
+            const score = team["Score total"] || "0";
+
+            let medal = "";
+            if (idx === 0) medal = "🥇 ";
+            else if (idx === 1) medal = "🥈 ";
+            else if (idx === poules[p].length - 1 && def > 0) medal = "💀 ";
+            else if (idx === 2) medal = "🥉 ";
+
+            if (idx < 2 || top2trois.includes(team)) div.classList.add('qualified');
+            div.innerHTML = `<div class="name">${medal}${name}</div><div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div><div class="score">${score}</div>`;
+
+            div.addEventListener('click', e => {
+                e.stopPropagation();
+                document.getElementById('modalTeamName').textContent = name;
+                const j1 = team["Joueur 1"] || team["Joueur1"] || "";
+                const j2 = team["Joueur 2"] || team["Joueur2"] || "";
+                document.getElementById('modalPlayers').textContent = [j1, j2].filter(Boolean).join(' & ');
+                document.getElementById('playerModal').style.display = 'flex';
             });
-            const meilleurs3 = [];
-            for (const p in poules) {
-                poules[p].sort((a, b) => {
-                    const va = toInt(a.Victoires), vb = toInt(b.Victoires);
-                    if (vb !== va) return vb - va;
-                    return toInt(b["Score total"]) - toInt(a["Score total"]);
-                });
-                if (poules[p][2]) meilleurs3.push(poules[p][2]);
-            }
-            meilleurs3.sort((a, b) => toInt(b["Score total"]) - toInt(a["Score total"]));
-            const top2trois = meilleurs3.slice(0, 2);
-            Object.keys(poules).sort().forEach(p => {
-                const card = document.createElement('div'); card.className = 'poule-card';
-                const title = document.createElement('div'); title.className = 'poule-title'; title.textContent = "Poule " + p;
-                card.appendChild(title);
-                const header = document.createElement('div'); header.className = 'team-header';
-                header.innerHTML = `<div>Équipe</div><div style="text-align: center;">Victoires/Défaites</div><div style="text-align: right;">Score</div>`;
-                card.appendChild(header);
-                poules[p].forEach((team, idx) => {
-                    const div = document.createElement('div'); div.className = 'team';
-                    const name = team["Nom de l’équipe"] || team["Nom équipe"] || team["Nom"] || "";
-                    const vic = team["Victoires"] || "0";
-                    const def = team["Defaites"] || "0";
-                    const score = team["Score total"] || "0";
-                    let medal = "";
-                    if (idx === 0) medal = "🥇 ";
-                    else if (idx === 1) medal = "🥈 ";
-                    else if (idx === 2) medal = "🥉 ";
-                    else if (idx === 3) medal = "💀 ";
-                    if (idx < 2 || top2trois.includes(team)) div.classList.add('qualified');
-                    div.innerHTML = `<div class="name">${medal}${name}</div><div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div><div class="score">${score}</div>`;
-                    div.addEventListener('click', e => {
-                        e.stopPropagation();
-                        document.getElementById('modalTeamName').textContent = name;
-                        const j1 = team["Joueur 1"] || team["Joueur1"] || "";
-                        const j2 = team["Joueur 2"] || team["Joueur2"] || "";
-                        document.getElementById('modalPlayers').textContent = [j1, j2].filter(Boolean).join(' & ');
-                        document.getElementById('playerModal').style.display = 'flex';
-                    });
-                    card.appendChild(div);
-                });
-                cont.appendChild(card);
-            });
-        }
+
+            card.appendChild(div);
+        });
+
+        cont.appendChild(card);
+    });
+}
+
 
         function afficherMatchesPoules(data) {
             const cont = document.getElementById('matches-container');
