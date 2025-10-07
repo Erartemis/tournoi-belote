@@ -1,372 +1,212 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Tournoi mondial de coinche à Vancouver</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        :root { --accent: #2b7a78; --qualif: #cce8ff; }
-        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f4f6f8; margin: 20px; color: #222; }
-        header { text-align: center; margin-bottom: 18px; }
-        h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
-        h2, h3 { margin: 24px 0 12px; color: #333; text-align: center; }
-        /* Poules */
-        .poules { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
-        .poule-card { background: #fff; border-radius: 10px; padding: 14px; width: 320px; box-shadow: 0 6px 16px rgba(20, 20, 30, 0.06); }
-        .poule-title { font-weight: 700; margin-bottom: 8px; font-size: 1.05rem; color: #222; text-align: center; }
-        .team-header { display: grid; grid-template-columns: 1fr 100px 60px; gap: 8px; align-items: center; padding: 6px 10px; font-size: 0.8rem; color: #888; font-weight: 500; border-bottom: 1px solid #eee; margin-bottom: 4px; }
-        .team { display: grid; grid-template-columns: 1fr 100px 60px; gap: 8px; align-items: center; padding: 10px; margin: 6px 0; border-radius: 8px; cursor: pointer; transition: background 0.16s, transform 0.12s; }
-        .team:hover { background: #eef9ff; transform: translateY(-2px); }
-        .team .name { text-align: left; font-weight: 600; color: #153243; overflow: hidden; text-overflow: ellipsis; }
-        .team .ratio { text-align: center; font-weight: 700; }
-        .team .score { text-align: right; font-weight: 700; color: #0b3b2e; }
-        .victory { color: green; }
-        .defeat { color: red; }
-        .qualified { background: var(--qualif); }
-        /* Matchs de poules */
-        .matches { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin: 20px 0; }
-        .match-poule-card { background: #fff; border-radius: 10px; padding: 14px; width: 320px; box-shadow: 0 6px 16px rgba(20, 20, 30, 0.06); margin-bottom: 20px; }
-        .match-poule-title { font-weight: 700; margin-bottom: 12px; font-size: 1.05rem; color: #222; text-align: center; }
-        
-        /* Nouveau style pour les matchs de poules */
-        .match-container {border:1px solid #eee;border-radius:6px;padding:0;margin-bottom:12px;background:#fff;position:relative;min-height:80px;display:grid;grid-template-rows:1fr 1fr;}
-        .match-team-row {display:grid;grid-template-columns:1fr 100px;align-items:cente;padding:8px 12px;}
-        .match-team-name {font-weight:normal;font-size:0.95rem;justify-self:start;}
-        .match-team-scores {display:grid;grid-auto-flow:column;gap:1px;color:#2b7a78;justify-self:end;min-width:100px;}
-        .match-team-scores span {display:inline-block;text-align:right;min-width:25px;}
-        .winning-score {font-weight:bold;}
-        .match-unplayed {position:absolute;top:50%;right:12px;transform:translateY(-50%);color:#ff8c00;font-style:italic;font-size:0.9rem;font-weight:bold;}
-
-        /* Tableau final */
-        .table-wrapper { max-width: 1200px; margin: 0 auto; }
-        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 14px rgba(10, 10, 20, 0.04); }
-        th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.95rem; }
-        th { background: var(--accent); color: #fff; font-weight: 700; }
-        tr:hover td { background: #fafafa; }
-        .winner { background: #dfffe0 !important; font-weight: 700; }
-        /* modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; z-index: 999; }
-        .modal .card { background: #fff; padding: 18px; border-radius: 8px; width: 320px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); text-align: center; }
-        .modal .close { float: right; cursor: pointer; color: #888; font-size: 20px; font-weight: 700; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Tournoi mondial de coinche à Vancouver</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { --accent:#2b7a78; --qualif:#cce8ff; }
+    body { font-family:'Segoe UI',Roboto,Arial,sans-serif; background:#f4f6f8; margin:20px; color:#222; }
+    header { text-align:center; margin-bottom:18px; }
+    h1 { margin:0; font-size:1.8rem; color:var(--accent); }
+    h2 { margin:24px 0 12px; color:#333; text-align:center; }
+    /* Poules */
+    .poules,.matches { display:flex; flex-wrap:wrap; gap:18px; justify-content:center; }
+    .poule-card,.match-poule-card {
+      background:#fff; border-radius:10px; padding:14px; width:320px;
+      box-shadow:0 6px 16px rgba(20,20,30,0.06);
+    }
+    .poule-title,.match-poule-title {
+      font-weight:700; font-size:1.05rem; color:#222; text-align:center; margin-bottom:8px;
+    }
+    .team-header {
+      display:grid; grid-template-columns:1fr 100px 60px;
+      gap:8px; align-items:center; padding:6px 10px;
+      font-size:.8rem; color:#888; font-weight:500;
+      border-bottom:1px solid #eee; margin-bottom:4px;
+    }
+    .team {
+      display:grid; grid-template-columns:1fr 100px 60px;
+      gap:8px; align-items:center; padding:10px; margin:6px 0;
+      border-radius:8px; cursor:pointer;
+      transition:background .16s, transform .12s;
+    }
+    .team:hover { background:#eef9ff; transform:translateY(-2px); }
+    .team .name { font-weight:600; color:#153243; overflow:hidden; text-overflow:ellipsis; }
+    .team .ratio { text-align:center; font-weight:700; }
+    .team .score { text-align:right; font-weight:700; color:#0b3b2e; }
+    .victory{color:green;} .defeat{color:red;} .qualified{background:var(--qualif);}
+    /* Matchs de poules */
+    .match-container {
+      border:1px solid #eee; border-radius:6px; background:#fff;
+      display:grid; grid-template-rows:1fr 1fr; margin-bottom:12px; position:relative;
+    }
+    .match-team-row {
+      display:grid; grid-template-columns:1fr 100px; align-items:center; padding:8px 12px;
+    }
+    .match-team-scores { display:flex; gap:4px; justify-content:end; color:var(--accent); }
+    .winning-score{font-weight:bold;}
+    .match-unplayed {
+      position:absolute; top:50%; right:12px; transform:translateY(-50%);
+      color:#ff8c00; font-style:italic; font-weight:bold; font-size:.9rem;
+    }
+    /* Tableau final */
+    .table-wrapper{max-width:1200px;margin:0 auto;}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;box-shadow:0 6px 14px rgba(10,10,20,.04);}
+    th,td{padding:10px 12px;border-bottom:1px solid #eee;text-align:center;font-size:.95rem;}
+    th{background:var(--accent);color:#fff;font-weight:700;} tr:hover td{background:#fafafa;}
+    .winner{background:#dfffe0!important;font-weight:700;}
+    /* Modal */
+    .modal{
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.5); align-items:center; justify-content:center; z-index:999;
+    }
+    .modal .card{
+      background:#fff; padding:18px; border-radius:8px; width:320px;
+      box-shadow:0 8px 30px rgba(0,0,0,.2); text-align:center;
+    }
+    .modal .close{float:right;cursor:pointer;color:#888;font-size:20px;font-weight:700;}
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Tournoi mondial de coinche à Vancouver</h1>
-    </header>
-    <h2>Poules</h2>
-    <div class="poules" id="poules-container"></div>
-    <h2>Matchs de poules</h2>
-    <div class="matches" id="matches-container"></div>
-    <div id="tableFinalSection" style="display: none;">
-        <h2>Tableau Final</h2>
-        <div id="tableFinalWrapper" class="table-wrapper">
-            <table id="tableauFinal">
-                <thead>
-                    <tr><th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+  <header><h1>Tournoi mondial de coinche à Vancouver</h1></header>
+  <h2>Poules</h2><div id="poules-container" class="poules"></div>
+  <h2>Matchs de poules</h2><div id="matches-container" class="matches"></div>
+  <div id="tableFinalSection" style="display:none;">
+    <h2>Tableau Final</h2>
+    <div class="table-wrapper">
+      <table id="tableauFinal">
+        <thead><tr><th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th></tr></thead>
+        <tbody></tbody>
+      </table>
     </div>
-    <!-- Modal -->
-    <div id="playerModal" class="modal" role="dialog" aria-modal="true">
-        <div class="card">
-            <div class="close" id="modalClose">&times;</div>
-            <h3 id="modalTeamName"></h3>
-            <p id="modalPlayers" style="margin-top: 10px; color: #333; font-weight: 600;"></p>
-        </div>
+  </div>
+
+  <div id="playerModal" class="modal" role="dialog" aria-modal="true">
+    <div class="card">
+      <div class="close" id="modalClose">&times;</div>
+      <h3 id="modalTeamName"></h3>
+      <p id="modalPlayers" style="margin-top:10px;color:#333;font-weight:600;"></p>
     </div>
-    <script>
-        const csvEquipes = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv";
-        const csvTableau = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv";
-        const csvMatchesPoules = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=285227174&single=true&output=csv";
+  </div>
 
-        function toInt(v) { const n = parseInt((v || "").toString().replace(/[^0-9-]/g, '')); return isNaN(n) ? 0 : n; }
+  <script>
+    const urls = {
+      equipes: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=1860524493&single=true&output=csv",
+      tableau: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=760310331&single=true&output=csv",
+      matchs:  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTiuPsbbwqM3BRrL4zmmQFl1fGkyLi2j4tPBasqAhZVYYWccSzpMhos5CDIqXeUZR0pJai6S5nLJw1K/pub?gid=285227174&single=true&output=csv"
+    };
 
-        function afficherPoules(data) {
-    const cont = document.getElementById('poules-container');
-    cont.innerHTML = "";
-    const poules = {};
-    data.forEach(r => {
-        const pou = r.Poule && r.Poule.toString().trim();
-        if (!pou) return;
-        if (!poules[pou]) poules[pou] = [];
-        poules[pou].push(r);
-    });
+    const toInt = v => parseInt((v||'').toString().replace(/\D+/g,''))||0;
 
-    // Tri personnalisé pour chaque poule
-    for (const p in poules) {
-        poules[p].sort((a, b) => {
-            const vicA = toInt(a.Victoires);
-            const vicB = toInt(b.Victoires);
-            const defA = toInt(a.Defaites);
-            const defB = toInt(b.Defaites);
-            const scoreA = toInt(a["Score total"]);
-            const scoreB = toInt(b["Score total"]);
+    // --- POULES ---
+    function afficherPoules(data) {
+      const cont = document.getElementById('poules-container');
+      cont.innerHTML = "";
+      const poules = {};
 
-            // 1. D'abord les équipes avec des victoires (par ordre décroissant)
-            if (vicA > 0 && vicB === 0) return -1;
-            if (vicB > 0 && vicA === 0) return 1;
-            if (vicA > vicB) return -1;
-            if (vicB > vicA) return 1;
+      data.forEach(r => {
+        const p = r.Poule?.trim();
+        if (!p) return;
+        (poules[p] ??= []).push(r);
+      });
 
-            // 2. Ensuite les équipes sans victoire mais sans défaite (0-0)
-            if (vicA === 0 && defA === 0 && defB > 0) return -1;
-            if (vicB === 0 && defB === 0 && defA > 0) return 1;
+      // Tri
+      Object.values(poules).forEach(p =>
+        p.sort((a,b)=>{
+          const [va,vb] = [toInt(a.Victoires), toInt(b.Victoires)];
+          const [da,db] = [toInt(a.Defaites), toInt(b.Defaites)];
+          const [sa,sb] = [toInt(a["Score total"]), toInt(b["Score total"])];
+          if(va!==vb) return vb-va;
+          if(da!==db) return da-db;
+          return sb-sa;
+        })
+      );
 
-            // 3. Enfin les équipes avec des défaites (0 victoires, ≥1 défaite)
-            if (defA > 0 && defB === 0) return 1;
-            if (defB > 0 && defA === 0) return -1;
+      // Top 2 meilleurs troisièmes
+      const meilleurs3 = Object.values(poules).map(p=>p[2]).filter(Boolean)
+        .sort((a,b)=>toInt(b["Score total"])-toInt(a["Score total"]))
+        .slice(0,2);
 
-            // 4. Si tout le reste est égal, trier par score total
-            return scoreB - scoreA;
-        });
-    }
-
-    const meilleurs3 = [];
-    for (const p in poules) {
-        if (poules[p][2]) meilleurs3.push(poules[p][2]);
-    }
-
-    meilleurs3.sort((a, b) => toInt(b["Score total"]) - toInt(a["Score total"]));
-    const top2trois = meilleurs3.slice(0, 2);
-
-    Object.keys(poules).sort().forEach(p => {
+      Object.keys(poules).sort().forEach(p=>{
         const card = document.createElement('div');
         card.className = 'poule-card';
-        const title = document.createElement('div');
-        title.className = 'poule-title';
-        title.textContent = "Poule " + p;
-        card.appendChild(title);
-
-        const header = document.createElement('div');
-        header.className = 'team-header';
-        header.innerHTML = `<div>Equipe</div><div style="text-align: center;">Victoires/Defaites</div><div style="text-align: right;">Score</div>`;
-        card.appendChild(header);
-
-        poules[p].forEach((team, idx) => {
-            const div = document.createElement('div');
-            div.className = 'team';
-            const name = team["Nom de l’équipe"] || team["Nom equipe"] || team["Nom"] || "";
-            const vic = team.Victoires || "0";
-            const def = team.Defaites || "0";
-            const score = team["Score total"] || "0";
-
-            let medal = "";
-            if (idx === 0) medal = "🥇 ";
-            else if (idx === 1) medal = "🥈 ";
-            else if (idx === poules[p].length - 1 && def > 0) medal = "💀 ";
-            else if (idx === 2) medal = "🥉 ";
-
-            if (idx < 2 || top2trois.includes(team)) div.classList.add('qualified');
-            div.innerHTML = `<div class="name">${medal}${name}</div><div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div><div class="score">${score}</div>`;
-
-            div.addEventListener('click', e => {
-                e.stopPropagation();
-                document.getElementById('modalTeamName').textContent = name;
-                const j1 = team["Joueur 1"] || team["Joueur1"] || "";
-                const j2 = team["Joueur 2"] || team["Joueur2"] || "";
-                document.getElementById('modalPlayers').textContent = [j1, j2].filter(Boolean).join(' & ');
-                document.getElementById('playerModal').style.display = 'flex';
-            });
-
-            card.appendChild(div);
+        card.innerHTML = `<div class="poule-title">Poule ${p}</div>
+          <div class="team-header"><div>Équipe</div><div>Victoires/Défaites</div><div>Score</div></div>`;
+        poules[p].forEach((t,i)=>{
+          const name = t["Nom de l’équipe"] || t["Nom equipe"] || t["Nom"] || "";
+          const vic = t.Victoires||0, def = t.Defaites||0, score=t["Score total"]||0;
+          const div=document.createElement('div');
+          div.className='team';
+          if(i<2||meilleurs3.includes(t)) div.classList.add('qualified');
+          const medal=["🥇","🥈","🥉"][i]||((i===poules[p].length-1&&def>0)?"💀":"");
+          div.innerHTML=`<div class="name">${medal} ${name}</div>
+            <div class="ratio"><span class="victory">${vic}</span>/<span class="defeat">${def}</span></div>
+            <div class="score">${score}</div>`;
+          div.onclick=()=>{
+            document.getElementById('modalTeamName').textContent=name;
+            document.getElementById('modalPlayers').textContent=[t["Joueur 1"],t["Joueur 2"]].filter(Boolean).join(' & ');
+            document.getElementById('playerModal').style.display='flex';
+          };
+          card.appendChild(div);
         });
-
         cont.appendChild(card);
-    });
-}
+      });
+    }
 
+    // --- MATCHS DE POULES ---
+    function afficherMatchesPoules(data){
+      const cont=document.getElementById('matches-container');
+      cont.innerHTML="";
+      const parPoule={};
+      data.forEach(m=> (parPoule[m.Poule||"Inconnue"] ??= []).push(m));
 
-        function afficherMatchesPoules(data) {
-            const cont = document.getElementById('matches-container');
-            cont.innerHTML = "";
+      for(const [poule, matchs] of Object.entries(parPoule)){
+        const card=document.createElement('div');
+        card.className='match-poule-card';
+        card.innerHTML=`<div class="match-poule-title">Poule ${poule}</div>`;
 
-            // Organiser les matchs par poule
-            const matchsParPoule = {};
-            data.forEach(match => {
-                const poule = match.Poule || "Inconnue";
-                if (!matchsParPoule[poule]) matchsParPoule[poule] = [];
-                matchsParPoule[poule].push(match);
-            });
+        matchs.forEach(m=>{
+          const teamA=m["Équipe A"]||m["Equipe A"]||"?", teamB=m["Équipe B"]||m["Equipe B"]||"?";
+          const scoresA=[1,2,3].map(i=>toInt(m[`Partie ${i}-score A`])),
+                scoresB=[1,2,3].map(i=>toInt(m[`Partie ${i}-score B`]));
+          const unplayed=scoresA.every(s=>s===0)&&scoresB.every(s=>s===0);
+          const row=(n,name,sA,sB)=>`<div class="match-team-row">
+            <div class="match-team-name${n===1&&m.Vainqueur===teamA||n===2&&m.Vainqueur===teamB?' fw-bold':''}">${name}</div>
+            <div class="match-team-scores">${sA.map((v,i)=>v>0||sB[i]>0?`<span${v>sB[i]?' class="winning-score"':''}>${v}</span>`:'').join('')}</div></div>`;
 
-            // Créer une carte par poule
-            for (const [poule, matchs] of Object.entries(matchsParPoule)) {
-                const pouleCard = document.createElement('div');
-                pouleCard.className = 'match-poule-card';
+          card.innerHTML+=`<div class="match-container">
+            ${row(1,teamA,scoresA,scoresB)}
+            ${row(2,teamB,scoresB,scoresA)}
+            ${unplayed?'<div class="match-unplayed">Match à jouer</div>':''}
+          </div>`;
+        });
+        cont.appendChild(card);
+      }
+    }
 
-                const title = document.createElement('div');
-                title.className = 'match-poule-title';
-                title.textContent = `Poule ${poule}`;
-                pouleCard.appendChild(title);
+    // --- TABLEAU FINAL ---
+    function remplirTableauFinal(data){
+      const tbody=document.querySelector('#tableauFinal tbody');
+      tbody.innerHTML=data.filter(r=>Object.values(r).some(Boolean)).map(r=>{
+        const cols=["Phase","Match","Équipe A","Équipe B","Score A","Score B","Vainqueur"];
+        return `<tr>${cols.map(c=>{
+          const v=r[c]||r[c.replace('É','E')]||"";
+          return `<td${c==="Vainqueur"&&v?' class="winner"':''}>${v}</td>`;
+        }).join('')}</tr>`;
+      }).join('');
+    }
 
-                matchs.forEach(match => {
-                    const teamA = match["Équipe A"] || match["Equipe A"] || "Équipe Inconnue";
-                    const teamB = match["Équipe B"] || match["Equipe B"] || "Équipe Inconnue";
+    // --- MODAL ---
+    const modal=document.getElementById('playerModal');
+    document.getElementById('modalClose').onclick=()=>modal.style.display='none';
+    window.onclick=e=>e.target===modal&&(modal.style.display='none');
 
-                    // Scores des parties
-                    const scoreA1 = toInt(match["Partie 1-score A"]);
-                    const scoreA2 = toInt(match["Partie 2-score A"]);
-                    const scoreA3 = toInt(match["Partie 3-score A"]);
-                    const scoreB1 = toInt(match["Partie 1-score B"]);
-                    const scoreB2 = toInt(match["Partie 2-score B"]);
-                    const scoreB3 = toInt(match["Partie 3-score B"]);
-
-                    const isUnplayed = (scoreA1 === 0 && scoreB1 === 0 && scoreA2 === 0 && scoreB2 === 0 && scoreA3 === 0 && scoreB3 === 0);
-
-                    // Calcul des scores totaux
-                    const totalScoreA = scoreA1 + scoreA2 + scoreA3;
-                    const totalScoreB = scoreB1 + scoreB2 + scoreB3;
-
-                    // Créer le conteneur du match
-                    const matchContainer = document.createElement('div');
-                    matchContainer.className = 'match-container';
-                    matchContainer.style.position = 'relative';
-
-                    // Équipe A (en haut)
-                    const teamARow = document.createElement('div');
-                    teamARow.className = 'match-team-row';
-
-                    const teamAName = document.createElement('div');
-                    teamAName.className = 'match-team-name';
-                    teamAName.textContent = teamA;
-
-                    const teamAScores = document.createElement('div');
-                    teamAScores.className = 'match-team-scores';
-
-                    if (!isUnplayed) {
-                        // Partie 1
-                        const scoreA1Span = document.createElement('span');
-                        scoreA1Span.textContent = scoreA1;
-                        if (scoreA1 > scoreB1) scoreA1Span.classList.add('winning-score');
-                        teamAScores.appendChild(scoreA1Span);
-
-                        // Partie 2
-                        if (scoreA2 > 0 || scoreB2 > 0) {
-                            const separator = document.createElement('span');
-                            separator.textContent = ' ';
-                            teamAScores.appendChild(separator);
-
-                            const scoreA2Span = document.createElement('span');
-                            scoreA2Span.textContent = scoreA2;
-                            if (scoreA2 > scoreB2) scoreA2Span.classList.add('winning-score');
-                            teamAScores.appendChild(scoreA2Span);
-                        }
-
-                        // Partie 3
-                        if (scoreA3 > 0 || scoreB3 > 0) {
-                            const separator = document.createElement('span');
-                            separator.textContent = ' ';
-                            teamAScores.appendChild(separator);
-
-                            const scoreA3Span = document.createElement('span');
-                            scoreA3Span.textContent = scoreA3;
-                            if (scoreA3 > scoreB3) scoreA3Span.classList.add('winning-score');
-                            teamAScores.appendChild(scoreA3Span);
-                        }
-                    }
-
-                    teamARow.appendChild(teamAName);
-                    teamARow.appendChild(teamAScores);
-                    matchContainer.appendChild(teamARow);
-
-                    // Équipe B (en bas)
-                    const teamBRow = document.createElement('div');
-                    teamBRow.className = 'match-team-row';
-
-                    const teamBName = document.createElement('div');
-                    teamBName.className = 'match-team-name';
-                    teamBName.textContent = teamB;
-
-                    const teamBScores = document.createElement('div');
-                    teamBScores.className = 'match-team-scores';
-
-                    if (!isUnplayed) {
-                        // Partie 1
-                        const scoreB1Span = document.createElement('span');
-                        scoreB1Span.textContent = scoreB1;
-                        if (scoreB1 > scoreA1) scoreB1Span.classList.add('winning-score');
-                        teamBScores.appendChild(scoreB1Span);
-
-                        // Partie 2
-                        if (scoreA2 > 0 || scoreB2 > 0) {
-                            const separator = document.createElement('span');
-                            separator.textContent = ' ';
-                            teamBScores.appendChild(separator);
-
-                            const scoreB2Span = document.createElement('span');
-                            scoreB2Span.textContent = scoreB2;
-                            if (scoreB2 > scoreA2) scoreB2Span.classList.add('winning-score');
-                            teamBScores.appendChild(scoreB2Span);
-                        }
-
-                        // Partie 3
-                        if (scoreA3 > 0 || scoreB3 > 0) {
-                            const separator = document.createElement('span');
-                            separator.textContent = ' ';
-                            teamBScores.appendChild(separator);
-
-                            const scoreB3Span = document.createElement('span');
-                            scoreB3Span.textContent = scoreB3;
-                            if (scoreB3 > scoreA3) scoreB3Span.classList.add('winning-score');
-                            teamBScores.appendChild(scoreB3Span);
-                        }
-                    }
-
-                    teamBRow.appendChild(teamBName);
-                    teamBRow.appendChild(teamBScores);
-                    matchContainer.appendChild(teamBRow);
-
-                    // Mettre en gras le nom du gagnant
-                    if (!isUnplayed) {
-                        // Utiliser la colonne "Vainqueur" pour déterminer le gagnant
-                        const vainqueur = match["Vainqueur"] || match["vainqueur"] || "";
-
-                        if (vainqueur === teamA) {
-                            teamAName.style.fontWeight = 'bold';
-                        } else if (vainqueur === teamB) {
-                            teamBName.style.fontWeight = 'bold';
-                        }
-                        // Si Vainqueur est vide ou ne correspond à aucune équipe, on ne met rien en gras
-                    } else {
-                        // Ajouter "Match à jouer" centré verticalement
-                        const unplayed = document.createElement('div');
-                        unplayed.className = 'match-unplayed';
-                        unplayed.textContent = "Match à jouer";
-                        matchContainer.appendChild(unplayed);
-                    }
-
-                    pouleCard.appendChild(matchContainer);
-                });
-
-                cont.appendChild(pouleCard);
-            }
-        }
-
-
-        function remplirTableauFinal(data) {
-            const tbody = document.querySelector('#tableauFinal tbody');
-            tbody.innerHTML = "";
-            data.forEach(row => {
-                if (!Object.values(row).some(v => v)) return;
-                const tr = document.createElement('tr');
-                const cols = ["Phase", "Match", "Équipe A", "Équipe B", "Score A", "Score B", "Vainqueur"];
-                tr.innerHTML = cols.map(c => {
-                    let v = row[c] || row[c.replace('É', 'E')] || "";
-                    return `<td${(c === "Vainqueur" && v) ? ' class="winner"' : ''}>${v}</td>`;
-                }).join("");
-                tbody.appendChild(tr);
-            });
-        }
-
-        document.getElementById('modalClose').addEventListener('click', () => document.getElementById('playerModal').style.display = 'none');
-        window.addEventListener('click', e => { if (e.target === document.getElementById('playerModal')) document.getElementById('playerModal').style.display = 'none'; });
-
-        Papa.parse(csvEquipes, { download: true, header: true, complete: r => afficherPoules(r.data) });
-        Papa.parse(csvMatchesPoules, { download: true, header: true, complete: r => afficherMatchesPoules(r.data) });
-        Papa.parse(csvTableau, { download: true, header: true, complete: r => remplirTableauFinal(r.data) });
-    </script>
+    // --- CHARGEMENT ---
+    Papa.parse(urls.equipes,{download:true,header:true,complete:r=>afficherPoules(r.data)});
+    Papa.parse(urls.matchs, {download:true,header:true,complete:r=>afficherMatchesPoules(r.data)});
+    Papa.parse(urls.tableau,{download:true,header:true,complete:r=>remplirTableauFinal(r.data)});
+  </script>
 </body>
 </html>
