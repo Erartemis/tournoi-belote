@@ -15,7 +15,7 @@
         .poules { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
         .poule-card { background: #fff; border-radius: 10px; padding: 14px; width: 320px; box-shadow: 0 6px 16px rgba(20, 20, 30, 0.06); }
         .poule-title { font-weight: 700; margin-bottom: 8px; font-size: 1.05rem; color: #222; text-align: center; }
-        .team-header { display: grid; grid-template-columns: 1fr 100px 60px; gap: 8px; align-items: center; padding: 6px 10px; font-size: 0.8rem; color: #888; font-weight: 500; border-bottom: 1px solid #eee; margin-bottom: 4px; }
+        .team-header { display: grid; grid-template-columns: 1fr 100px 40px; gap: 30px; align-items: center; padding: 6px 10px; font-size: 0.8rem; color: #888; font-weight: 500; border-bottom: 1px solid #eee; margin-bottom: 4px; }
         .team { display: grid; grid-template-columns: 1fr 100px 60px; gap: 8px; align-items: center; padding: 10px; margin: 6px 0; border-radius: 8px; cursor: pointer; transition: background 0.16s, transform 0.12s; }
         .team:hover { background: #eef9ff; transform: translateY(-2px); }
         .team .name { text-align: left; font-weight: 600; color: #153243; overflow: hidden; text-overflow: ellipsis; }
@@ -142,7 +142,7 @@
 
         const header = document.createElement('div');
         header.className = 'team-header';
-        header.innerHTML = `<div>Equipe</div><div style="text-align: center;">Victoires/Defaites</div><div style="text-align: right;">Manches</div>`;
+        header.innerHTML = `<div>Equipe</div><div style="text-align: center;">Victoires/Defaites</div><div style="text-align: right;">Manches gagnees</div>`;
         card.appendChild(header);
 
         poules[p].forEach((team, idx) => {
@@ -368,3 +368,4 @@
     </script>
 </body>
 </html>
+
