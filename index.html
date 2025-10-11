@@ -103,8 +103,8 @@
             const vicB = toInt(b.Victoires);
             const defA = toInt(a.Defaites);
             const defB = toInt(b.Defaites);
-            const scoreA = toInt(a["Score total"]);
-            const scoreB = toInt(b["Score total"]);
+            const manchesA = toInt(a.Manches || a["Manches"] || 0);
+            const manchesB = toInt(b.Manches || b["Manches"] || 0);
 
             // 1. D'abord les équipes avec des victoires (par ordre décroissant)
             if (vicA > 0 && vicB === 0) return -1;
@@ -112,16 +112,15 @@
             if (vicA > vicB) return -1;
             if (vicB > vicA) return 1;
 
-            // 2. Ensuite les équipes sans victoire mais sans défaite (0-0)
-            if (vicA === 0 && defA === 0 && defB > 0) return -1;
-            if (vicB === 0 && defB === 0 && defA > 0) return 1;
+            // 2. Ensuite par manches gagnées
+            if (manchesA > manchesB) return -1;
+            if (manchesB > manchesA) return 1;
 
-            // 3. Enfin les équipes avec des défaites (0 victoires, ≥1 défaite)
-            if (defA > 0 && defB === 0) return 1;
-            if (defB > 0 && defA === 0) return -1;
+            // 3. Enfin les équipes avec des défaites
+            if (defA > defB) return 1;
+            if (defB > defA) return -1;
 
-            // 4. Si tout le reste est égal, trier par score total
-            return scoreB - scoreA;
+            return 0;
         });
     }
 
@@ -130,7 +129,7 @@
         if (poules[p][2]) meilleurs3.push(poules[p][2]);
     }
 
-    meilleurs3.sort((a, b) => toInt(b["Score total"]) - toInt(a["Score total"]));
+    meilleurs3.sort((a, b) => toInt(b.Manches || b["Manches"] || 0) - toInt(a.Manches || a["Manches"] || 0));
     const top2trois = meilleurs3.slice(0, 2);
 
     Object.keys(poules).sort().forEach(p => {
@@ -143,7 +142,7 @@
 
         const header = document.createElement('div');
         header.className = 'team-header';
-        header.innerHTML = `<div>Equipe</div><div style="text-align: center;">Victoires/Defaites</div><div style="text-align: right;">Score</div>`;
+        header.innerHTML = `<div>Equipe</div><div style="text-align: center;">Victoires/Defaites</div><div style="text-align: right;">Manches</div>`;
         card.appendChild(header);
 
         poules[p].forEach((team, idx) => {
@@ -152,7 +151,7 @@
             const name = team["Nom de l’équipe"] || team["Nom equipe"] || team["Nom"] || "";
             const vic = team.Victoires || "0";
             const def = team.Defaites || "0";
-            const score = team["Score total"] || "0";
+            const manches = team.Manches || team["Manches"] || "0"; // Utilisation de la colonne Manches
 
             let medal = "";
             if (idx === 0) medal = "🥇 ";
@@ -161,7 +160,7 @@
             else if (idx === 2) medal = "🥉 ";
 
             if (idx < 2 || top2trois.includes(team)) div.classList.add('qualified');
-            div.innerHTML = `<div class="name">${medal}${name}</div><div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div><div class="score">${score}</div>`;
+            div.innerHTML = `<div class="name">${medal}${name}</div><div class="ratio"><span class="victory">${vic}</span> / <span class="defeat">${def}</span></div><div class="score">${manches}</div>`;
 
             div.addEventListener('click', e => {
                 e.stopPropagation();
@@ -344,9 +343,6 @@
                 cont.appendChild(pouleCard);
             }
         }
-
-
-
 
         function remplirTableauFinal(data) {
             const tbody = document.querySelector('#tableauFinal tbody');
