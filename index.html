@@ -2,58 +2,372 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
     <title>Tournoi mondial de coinche à Vancouver</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        :root { --accent: #2b7a78; --qualif: #cce8ff; }
-        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: #f4f6f8; margin: 20px; color: #222; }
-        header { text-align: center; margin-bottom: 18px; }
-        h1 { margin: 0; font-size: 1.8rem; color: var(--accent); }
-        h2, h3 { margin: 24px 0 12px; color: #333; text-align: center; }
-        /* Poules */
-        .poules { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
-        .poule-card { background: #fff; border-radius: 10px; padding: 14px; width: 320px; box-shadow: 0 6px 16px rgba(20, 20, 30, 0.06); }
-        .poule-title { font-weight: 700; margin-bottom: 8px; font-size: 1.05rem; color: #222; text-align: center; }
-        .team-header { display: grid; grid-template-columns: 1fr 100px 40px; gap: 30px; align-items: center; padding: 6px 10px; font-size: 0.8rem; color: #888; font-weight: 500; border-bottom: 1px solid #eee; margin-bottom: 4px; }
-        .team { display: grid; grid-template-columns: 1fr 100px 60px; gap: 8px; align-items: center; padding: 10px; margin: 6px 0; border-radius: 8px; cursor: pointer; transition: background 0.16s, transform 0.12s; }
-        .team:hover { background: #eef9ff; transform: translateY(-2px); }
-        .team .name { text-align: left; font-weight: 600; color: #153243; overflow: hidden; text-overflow: ellipsis; }
-        .team .ratio { text-align: center; font-weight: 700; }
-        .team .score { text-align: right; font-weight: 700; color: #0b3b2e; }
-        .victory { color: green; }
-        .defeat { color: red; }
-        .qualified { background: var(--qualif); }
-        /* Matchs de poules */
-        .matches { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin: 20px 0; }
-        .match-poule-card { background: #fff; border-radius: 10px; padding: 14px; width: 320px; box-shadow: 0 6px 16px rgba(20, 20, 30, 0.06); margin-bottom: 20px; }
-        .match-poule-title { font-weight: 700; margin-bottom: 12px; font-size: 1.05rem; color: #222; text-align: center; }
-        
-        /* Nouveau style pour les matchs de poules */
-        .match-container {border:1px solid #eee;border-radius:6px;padding:0;margin-bottom:12px;background:#fff;position:relative;min-height:80px;display:grid;grid-template-rows:1fr 1fr;}
-        .match-team-row {display:grid;grid-template-columns:1fr 100px;align-items:cente;padding:8px 12px;}
-        .match-team-name {font-weight:normal;font-size:0.95rem;justify-self:start;white-space: normal;}
-        .match-team-scores {display:grid;grid-auto-flow:column;gap:1px;color:#2b7a78;justify-self:end;min-width:100px;}
-        .match-team-scores span {display:inline-block;text-align:right;min-width:22px;}
-        .winning-score {font-weight:bold;}
-        .match-unplayed {position:absolute;top:50%;right:12px;transform:translateY(-50%);color:#ff8c00;font-style:italic;font-size:0.9rem;font-weight:bold;}
+    /* ===== Thème classique (par défaut) ===== */
+    :root {
+        --accent: #2b7a78;
+        --dark: #f4f6f8;
+        --light: #222;
+        --qualif: #cce8ff;
+        --spooky-shadow: none;
+    }
 
-        /* Tableau final */
-        .table-wrapper { max-width: 1200px; margin: 0 auto; }
-        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 6px 14px rgba(10, 10, 20, 0.04); }
-        th, td { padding: 10px 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.95rem; }
-        th { background: var(--accent); color: #fff; font-weight: 700; }
-        tr:hover td { background: #fafafa; }
-        .winner { background: #dfffe0 !important; font-weight: 700; }
-        /* modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); align-items: center; justify-content: center; z-index: 999; }
-        .modal .card { background: #fff; padding: 18px; border-radius: 8px; width: 320px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); text-align: center; }
-        .modal .close { float: right; cursor: pointer; color: #888; font-size: 20px; font-weight: 700; }
-    </style>
+    body {
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        background: var(--dark);
+        margin: 20px;
+        color: var(--light);
+    }
+
+    header {
+        text-align: center;
+        margin-bottom: 18px;
+        position: relative;
+    }
+
+    h1, h2, h3 {
+        margin: 0 0 12px;
+        color: var(--accent);
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    /* Conteneur pour le bouton de basculement */
+    .toggle-container {
+    text-align: center;
+    margin-bottom: 10px;
+    }
+        
+    .theme-toggle {
+        padding: 8px 16px;
+        background: var(--accent);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+
+
+    .theme-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Poules et matchs (thème classique) */
+    .poules, .matches {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        justify-content: center;
+    }
+
+    .poule-card, .match-poule-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 14px;
+        width: 320px;
+        box-shadow: 0 6px 16px rgba(20, 20, 30, 0.06);
+        border: 1px solid #eee;
+    }
+
+    .poule-title, .match-poule-title {
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 1.05rem;
+        color: #222;
+        text-align: center;
+    }
+
+    .team-header {
+        display: grid;
+        grid-template-columns: 1fr 100px 40px;
+        gap: 30px;
+        align-items: center;
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        color: #888;
+        font-weight: 500;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 4px;
+    }
+
+    .team {
+        display: grid;
+        grid-template-columns: 1fr 100px 60px;
+        gap: 8px;
+        align-items: center;
+        padding: 10px;
+        margin: 6px 0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fff;
+    }
+
+    .team:hover {
+        background: #eef9ff;
+        transform: translateY(-2px);
+    }
+
+    .team .name {
+        text-align: left;
+        font-weight: 600;
+        color: #153243;
+    }
+
+    .team .ratio {
+        text-align: center;
+        font-weight: 700;
+    }
+
+    .team .score {
+        text-align: right;
+        font-weight: 700;
+        color: #0b3b2e;
+    }
+
+    .victory {
+        color: green;
+    }
+
+    .defeat {
+        color: red;
+    }
+
+    .qualified {
+        background: var(--qualif);
+    }
+
+    .match-container {
+        border: 1px solid #eee;
+        border-radius: 6px;
+        padding: 0;
+        margin-bottom: 12px;
+        background: #fff;
+        position: relative;
+        min-height: 80px;
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+    }
+
+    .match-team-row {
+        display: grid;
+        grid-template-columns: 1fr 100px;
+        align-items: center;
+        padding: 8px 12px;
+    }
+
+    .match-team-name {
+        font-weight: normal;
+        font-size: 0.95rem;
+        justify-self: start;
+    }
+
+    .match-team-scores {
+        display: grid;
+        grid-auto-flow: column;
+        gap: 8px;
+        color: var(--accent);
+        justify-self: end;
+        min-width: 100px;
+    }
+
+    .match-team-scores span {
+        display: inline-block;
+        text-align: right;
+        min-width: 22px;
+    }
+
+    .winning-score {
+        font-weight: bold;
+    }
+
+    .match-unplayed {
+        position: absolute;
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+        color: #ff8c00;
+        font-style: italic;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+
+    /* Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+    }
+
+    .modal .card {
+        background: #fff;
+        padding: 18px;
+        border-radius: 8px;
+        width: 320px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        text-align: center;
+    }
+
+    .modal .close {
+        float: right;
+        cursor: pointer;
+        color: #888;
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    /* ===== Thème Halloween ===== */
+    .halloween-mode {
+        --accent: #ff6b00;
+        --dark: #1a1a1a;
+        --light: #f4f1de;
+        --qualif: #ff9e00;
+        --spooky-shadow: 0 0 10px rgba(255, 107, 0, 0.6);
+    }
+
+    .halloween-mode body {
+        background: var(--dark) url('https://cdn.pixabay.com/photo/2017/10/06/16/50/halloween-background-2822660_960_720.jpg');
+        background-size: cover;
+        color: var(--light);
+    }
+
+    .halloween-mode h1,
+    .halloween-mode h2,
+    .halloween-mode h3 {
+        font-family: 'Creepster', cursive;
+        text-shadow: var(--spooky-shadow);
+    }
+
+    .halloween-mode h1:after {
+        content: " 🎃";
+    }
+
+    .halloween-mode .poule-card,
+    .halloween-mode .match-poule-card {
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 10px;
+        border: 2px solid var(--accent);
+        box-shadow: var(--spooky-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .halloween-mode .poule-card:before,
+    .halloween-mode .match-poule-card:before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: url('https://cdn.pixabay.com/photo/2020/10/18/09/59/cobweb-5664560_960_720.png') repeat-x;
+        opacity: 0.3;
+    }
+
+    .halloween-mode .team-header {
+        color: var(--accent);
+        border-bottom: 1px solid var(--accent);
+    }
+
+    .halloween-mode .team {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .halloween-mode .team:hover {
+        background: rgba(255, 153, 0, 0.1);
+        transform: scale(1.02);
+    }
+
+    .halloween-mode .team .name {
+        color: var(--light);
+    }
+
+    .halloween-mode .team .ratio,
+    .halloween-mode .team .score {
+        color: var(--light);
+    }
+
+    .halloween-mode .match-container {
+        border: 1px solid var(--accent);
+        background: rgba(0, 0, 0, 0.6);
+    }
+
+    .halloween-mode .match-team-name {
+        color: var(--light);
+    }
+        
+    .halloween-mode .match-team-scores span {
+        font-size: 0.9rem !important;
+    }
+
+    .halloween-mode .winning-score {
+        color: #4CAF50;
+        font-size: 1rem;
+    }
+
+    .halloween-mode .modal .card {
+        background: var(--dark);
+        border: 2px solid var(--accent);
+        box-shadow: var(--spooky-shadow);
+    }
+
+    .halloween-mode .modal .card:before {
+        content: "🕷️";
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        font-size: 20px;
+    }
+
+    .halloween-mode .modal .close {
+        color: var(--light);
+    }
+
+    /* Décorations Halloween */
+    .halloween-mode body::before {
+        content: "🕸️";
+        position: fixed;
+        top: 10%;
+        left: 5%;
+        font-size: 30px;
+        color: rgba(255, 255, 255, 0.1);
+        z-index: -1;
+    }
+
+    .halloween-mode body::after {
+        content: "💀";
+        position: fixed;
+        bottom: 15%;
+        right: 8%;
+        font-size: 24px;
+        color: rgba(255, 255, 255, 0.1);
+        z-index: -1;
+    }
+</style>
+
+
 </head>
 <body>
     <header>
         <h1>Tournoi mondial de coinche à Vancouver</h1>
+        <div class="toggle-container">
+            <button id="halloweenToggle" class="theme-toggle">Mode Halloween OFF</button>
+        </div>
     </header>
     <h2>Poules</h2>
     <div class="poules" id="poules-container"></div>
@@ -424,6 +738,25 @@
         Papa.parse(csvEquipes, { download: true, header: true, complete: r => afficherPoules(r.data) });
         Papa.parse(csvMatchesPoules, { download: true, header: true, complete: r => afficherMatchesPoules(r.data) });
         Papa.parse(csvTableau, { download: true, header: true, complete: r => remplirTableauFinal(r.data) });
+        const toggleButton = document.getElementById('halloweenToggle');
+        
+        document.addEventListener('DOMContentLoaded', function() {
+                const toggleButton = document.getElementById('halloweenToggle');
+                toggleButton.addEventListener('click', function(event) {
+                    event.preventDefault(); // Empêche tout comportement par défaut
+                    document.body.classList.toggle('halloween-mode');
+                    const isHalloween = document.body.classList.contains('halloween-mode');
+                    toggleButton.textContent = isHalloween ? 'Mode Halloween ON' : 'Mode Halloween OFF';
+
+                    if (isHalloween && !document.getElementById('creepster-font')) {
+                        const fontLink = document.createElement('link');
+                        fontLink.id = 'creepster-font';
+                        fontLink.href = 'https://fonts.googleapis.com/css2?family=Creepster&display=swap';
+                        fontLink.rel = 'stylesheet';
+                        document.head.appendChild(fontLink);
+                    }
+                });
+        });
     </script>
 </body>
 </html>
