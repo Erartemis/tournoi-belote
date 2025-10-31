@@ -59,17 +59,9 @@
     <div class="poules" id="poules-container"></div>
     <h2>Matchs de poules</h2>
     <div class="matches" id="matches-container"></div>
-    <div id="tableFinalSection" style="display: none;">
-        <h2>Tableau Final</h2>
-        <div id="tableFinalWrapper" class="table-wrapper">
-            <table id="tableauFinal">
-                <thead>
-                    <tr><th>Phase</th><th>Match</th><th>Équipe A</th><th>Équipe B</th><th>Score A</th><th>Score B</th><th>Vainqueur</th></tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
+    <h2>Tableau Final</h2>
+    <div class="matches" id="tableau-final-container"></div>
+
     <!-- Modal -->
     <div id="playerModal" class="modal" role="dialog" aria-modal="true">
         <div class="card">
@@ -345,19 +337,86 @@
         }
 
         function remplirTableauFinal(data) {
-            const tbody = document.querySelector('#tableauFinal tbody');
-            tbody.innerHTML = "";
-            data.forEach(row => {
-                if (!Object.values(row).some(v => v)) return;
-                const tr = document.createElement('tr');
-                const cols = ["Phase", "Match", "Équipe A", "Équipe B", "Score A", "Score B", "Vainqueur"];
-                tr.innerHTML = cols.map(c => {
-                    let v = row[c] || row[c.replace('É', 'E')] || "";
-                    return `<td${(c === "Vainqueur" && v) ? ' class="winner"' : ''}>${v}</td>`;
-                }).join("");
-                tbody.appendChild(tr);
-            });
+    const cont = document.getElementById('tableau-final-container');
+    cont.innerHTML = "";
+
+    // Filtrer les matchs des quarts de finale
+    const quartsDeFinale = data.filter(row => row.Phase && row.Phase.includes("Quart"));
+
+    // Créer une carte pour les quarts de finale
+    const quartCard = document.createElement('div');
+    quartCard.className = 'match-poule-card';
+
+    const title = document.createElement('div');
+    title.className = 'match-poule-title';
+    title.textContent = "Quarts de Finale";
+    quartCard.appendChild(title);
+
+    quartsDeFinale.forEach(match => {
+        const teamA = match['Équipe A'] || match['Equipe A'] || "Équipe Inconnue";
+        const teamB = match['Équipe B'] || match['Equipe B'] || "Équipe Inconnue";
+
+        // Scores des parties
+        const scoreA = toInt(match['Score A'] || 0);
+        const scoreB = toInt(match['Score B'] || 0);
+
+        // Créer le conteneur du match
+        const matchContainer = document.createElement('div');
+        matchContainer.className = 'match-container';
+
+        // Équipe A (en haut)
+        const teamARow = document.createElement('div');
+        teamARow.className = 'match-team-row';
+
+        const teamAName = document.createElement('div');
+        teamAName.className = 'match-team-name';
+        teamAName.textContent = teamA;
+
+        const teamAScores = document.createElement('div');
+        teamAScores.className = 'match-team-scores';
+
+        const scoreASpan = document.createElement('span');
+        scoreASpan.textContent = scoreA;
+        teamAScores.appendChild(scoreASpan);
+
+        teamARow.appendChild(teamAName);
+        teamARow.appendChild(teamAScores);
+        matchContainer.appendChild(teamARow);
+
+        // Équipe B (en bas)
+        const teamBRow = document.createElement('div');
+        teamBRow.className = 'match-team-row';
+
+        const teamBName = document.createElement('div');
+        teamBName.className = 'match-team-name';
+        teamBName.textContent = teamB;
+
+        const teamBScores = document.createElement('div');
+        teamBScores.className = 'match-team-scores';
+
+        const scoreBSpan = document.createElement('span');
+        scoreBSpan.textContent = scoreB;
+        teamBScores.appendChild(scoreBSpan);
+
+        teamBRow.appendChild(teamBName);
+        teamBRow.appendChild(teamBScores);
+        matchContainer.appendChild(teamBRow);
+
+        // Mettre en gras le nom du gagnant
+        const vainqueur = match['Vainqueur'] || match['vainqueur'] || "";
+        if (vainqueur === teamA) {
+            teamAName.style.fontWeight = 'bold';
+        } else if (vainqueur === teamB) {
+            teamBName.style.fontWeight = 'bold';
         }
+
+        quartCard.appendChild(matchContainer);
+    });
+
+    cont.appendChild(quartCard);
+}
+
+
 
         document.getElementById('modalClose').addEventListener('click', () => document.getElementById('playerModal').style.display = 'none');
         window.addEventListener('click', e => { if (e.target === document.getElementById('playerModal')) document.getElementById('playerModal').style.display = 'none'; });
@@ -368,4 +427,3 @@
     </script>
 </body>
 </html>
-
