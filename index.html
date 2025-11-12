@@ -144,10 +144,6 @@
         color: red;
     }
 
-    .qualified {
-        background: var(--qualif);
-    }
-
     .match-container {
         border: 1px solid #eee;
         border-radius: 6px;
@@ -203,6 +199,35 @@
         font-weight: bold;
     }
 
+     .collapsible {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+    .collapsible::after {
+        content: " ▼ ";
+        font-size: 0.9em;
+        transition: transform 0.2s;
+    }
+
+    .collapsible.collapsed::after {
+        transform: rotate(-90deg);
+    }
+
+    .collapsible-content {
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.2s;
+    }
+
+    .collapsible-content.collapsed {
+        max-height: 0;
+        padding: 0;
+        opacity: 0;
+    }  
+    
     /* Modal */
     .modal {
         display: none;
@@ -337,9 +362,9 @@
     .halloween-mode .modal .card:before {
         content: "🕷️";
         position: absolute;
-        top: -10px;
-        right: -10px;
-        font-size: 20px;
+        top: +100px;
+        right: 100px;
+        font-size: 200px;
     }
 
     .halloween-mode .modal .close {
@@ -352,7 +377,7 @@
         position: fixed;
         top: 10%;
         left: 5%;
-        font-size: 30px;
+        font-size: 300px;
         color: rgba(255, 255, 255, 0.1);
         z-index: -1;
     }
@@ -368,7 +393,6 @@
     }
 </style>
 
-
 </head>
 <body>
     <header>
@@ -377,13 +401,23 @@
             <button id="halloweenToggle" class="theme-toggle">Mode Halloween OFF</button>
         </div>
     </header>
-    <h2>Poules</h2>
+    <h2 class="collapsible collapsed">Poules</h2>
+    
+<div class="collapsible-content collapsed">
     <div class="poules" id="poules-container"></div>
-    <h2>Matchs de poules</h2>
-    <div class="matches" id="matches-container"></div>
-    <h2>Tableau Final</h2>
-    <div class="matches" id="tableau-final-container"></div>
+</div>
 
+<h2 class="collapsible collapsed">Matchs de poules</h2>
+<div class="collapsible-content collapsed">
+    <div class="matches" id="matches-container"></div>
+</div>
+
+<h2 class="collapsible">Tableau final</h2>
+<div class="collapsible-content">
+    <div class="matches" id="tableau-final-container"></div>
+</div>
+
+    
     <!-- Modal -->
     <div id="playerModal" class="modal" role="dialog" aria-modal="true">
         <div class="card">
@@ -659,84 +693,151 @@
         }
 
         function remplirTableauFinal(data) {
-    const cont = document.getElementById('tableau-final-container');
-    cont.innerHTML = "";
+            const cont = document.getElementById('tableau-final-container');
+            cont.innerHTML = "";
 
-    // Filtrer les matchs des quarts de finale
-    const quartsDeFinale = data.filter(row => row.Phase && row.Phase.includes("Quart"));
+            // Filtrer les matchs par phase
+            const quarts = data.filter(row => row.Phase && row.Phase.includes("Quart"));
+            const demis = data.filter(row => row.Phase && row.Phase.includes("Demi"));
+            const finale = data.filter(row => row.Phase === "Finale");
 
-    // Créer une carte pour les quarts de finale
-    const quartCard = document.createElement('div');
-    quartCard.className = 'match-poule-card';
+            // Fonction pour créer une carte de match
+            function createMatchCard(title, matches) {
+                const card = document.createElement('div');
+                card.className = 'match-poule-card';
 
-    const title = document.createElement('div');
-    title.className = 'match-poule-title';
-    title.textContent = "Quarts de Finale";
-    quartCard.appendChild(title);
+                const titleElement = document.createElement('div');
+                titleElement.className = 'match-poule-title';
+                titleElement.textContent = title;
+                card.appendChild(titleElement);
 
-    quartsDeFinale.forEach(match => {
-        const teamA = match['Équipe A'] || match['Equipe A'] || "Équipe Inconnue";
-        const teamB = match['Équipe B'] || match['Equipe B'] || "Équipe Inconnue";
+                matches.forEach(match => {
+                    const teamA = match["Équipe A"] || "Équipe Inconnue";
+                    const teamB = match["Équipe B"] || "Équipe Inconnue";
 
-        // Scores des parties
-        const scoreA = toInt(match['Score A'] || 0);
-        const scoreB = toInt(match['Score B'] || 0);
+                    // Scores des parties
+                    const scoreA1 = parseInt(match["Partie 1-score A"] || 0);
+                    const scoreA2 = parseInt(match["Partie 2-score A"] || 0);
+                    const scoreA3 = parseInt(match["Partie 3-score A"] || 0);
+                    const scoreB1 = parseInt(match["Partie 1-score B"] || 0);
+                    const scoreB2 = parseInt(match["Partie 2-score B"] || 0);
+                    const scoreB3 = parseInt(match["Partie 3-score B"] || 0);
 
-        // Créer le conteneur du match
-        const matchContainer = document.createElement('div');
-        matchContainer.className = 'match-container';
+                    const totalScoreA = scoreA1 + scoreA2 + scoreA3;
+                    const totalScoreB = scoreB1 + scoreB2 + scoreB3;
 
-        // Équipe A (en haut)
-        const teamARow = document.createElement('div');
-        teamARow.className = 'match-team-row';
+                    // Créer le conteneur du match
+                    const matchContainer = document.createElement('div');
+                    matchContainer.className = 'match-container';
 
-        const teamAName = document.createElement('div');
-        teamAName.className = 'match-team-name';
-        teamAName.textContent = teamA;
+                    // Équipe A
+                    const teamARow = document.createElement('div');
+                    teamARow.className = 'match-team-row';
 
-        const teamAScores = document.createElement('div');
-        teamAScores.className = 'match-team-scores';
+                    const teamAName = document.createElement('div');
+                    teamAName.className = 'match-team-name';
+                    teamAName.textContent = teamA;
 
-        const scoreASpan = document.createElement('span');
-        scoreASpan.textContent = scoreA;
-        teamAScores.appendChild(scoreASpan);
+                    const teamAScores = document.createElement('div');
+                    teamAScores.className = 'match-team-scores';
 
-        teamARow.appendChild(teamAName);
-        teamARow.appendChild(teamAScores);
-        matchContainer.appendChild(teamARow);
+                    if (scoreA1 + scoreB1 > 0) {
+                        const scoreA1Span = document.createElement('span');
+                        scoreA1Span.textContent = scoreA1;
+                        if (scoreA1 > scoreB1) scoreA1Span.classList.add('winning-score');
+                        teamAScores.appendChild(scoreA1Span);
+                    }
 
-        // Équipe B (en bas)
-        const teamBRow = document.createElement('div');
-        teamBRow.className = 'match-team-row';
+                    if (scoreA2 + scoreB2 > 0) {
+                        const separator = document.createElement('span');
+                        separator.textContent = ' ';
+                        teamAScores.appendChild(separator);
 
-        const teamBName = document.createElement('div');
-        teamBName.className = 'match-team-name';
-        teamBName.textContent = teamB;
+                        const scoreA2Span = document.createElement('span');
+                        scoreA2Span.textContent = scoreA2;
+                        if (scoreA2 > scoreB2) scoreA2Span.classList.add('winning-score');
+                        teamAScores.appendChild(scoreA2Span);
+                    }
 
-        const teamBScores = document.createElement('div');
-        teamBScores.className = 'match-team-scores';
+                    if (scoreA3 + scoreB3 > 0) {
+                        const separator = document.createElement('span');
+                        separator.textContent = ' ';
+                        teamAScores.appendChild(separator);
 
-        const scoreBSpan = document.createElement('span');
-        scoreBSpan.textContent = scoreB;
-        teamBScores.appendChild(scoreBSpan);
+                        const scoreA3Span = document.createElement('span');
+                        scoreA3Span.textContent = scoreA3;
+                        if (scoreA3 > scoreB3) scoreA3Span.classList.add('winning-score');
+                        teamAScores.appendChild(scoreA3Span);
+                    }
 
-        teamBRow.appendChild(teamBName);
-        teamBRow.appendChild(teamBScores);
-        matchContainer.appendChild(teamBRow);
+                    teamARow.appendChild(teamAName);
+                    teamARow.appendChild(teamAScores);
+                    matchContainer.appendChild(teamARow);
 
-        // Mettre en gras le nom du gagnant
-        const vainqueur = match['Vainqueur'] || match['vainqueur'] || "";
-        if (vainqueur === teamA) {
-            teamAName.style.fontWeight = 'bold';
-        } else if (vainqueur === teamB) {
-            teamBName.style.fontWeight = 'bold';
+                    // Équipe B
+                    const teamBRow = document.createElement('div');
+                    teamBRow.className = 'match-team-row';
+
+                    const teamBName = document.createElement('div');
+                    teamBName.className = 'match-team-name';
+                    teamBName.textContent = teamB;
+
+                    const teamBScores = document.createElement('div');
+                    teamBScores.className = 'match-team-scores';
+
+                    if (scoreA1 + scoreB1 > 0) {
+                        const scoreB1Span = document.createElement('span');
+                        scoreB1Span.textContent = scoreB1;
+                        if (scoreB1 > scoreA1) scoreB1Span.classList.add('winning-score');
+                        teamBScores.appendChild(scoreB1Span);
+                    }
+
+                    if (scoreA2 + scoreB2 > 0) {
+                        const separator = document.createElement('span');
+                        separator.textContent = ' ';
+                        teamBScores.appendChild(separator);
+
+                        const scoreB2Span = document.createElement('span');
+                        scoreB2Span.textContent = scoreB2;
+                        if (scoreB2 > scoreA2) scoreB2Span.classList.add('winning-score');
+                        teamBScores.appendChild(scoreB2Span);
+                    }
+
+                    if (scoreA3 + scoreB3 > 0) {
+                        const separator = document.createElement('span');
+                        separator.textContent = ' ';
+                        teamBScores.appendChild(separator);
+
+                        const scoreB3Span = document.createElement('span');
+                        scoreB3Span.textContent = scoreB3;
+                        if (scoreB3 > scoreA3) scoreB3Span.classList.add('winning-score');
+                        teamBScores.appendChild(scoreB3Span);
+                    }
+
+                    teamBRow.appendChild(teamBName);
+                    teamBRow.appendChild(teamBScores);
+                    matchContainer.appendChild(teamBRow);
+
+                    // Mettre en gras le nom du gagnant
+                    const vainqueur = match["Vainqueur"] || "";
+                    if (vainqueur === teamA) {
+                        teamAName.style.fontWeight = 'bold';
+                    } else if (vainqueur === teamB) {
+                        teamBName.style.fontWeight = 'bold';
+                    }
+
+                    card.appendChild(matchContainer);
+                });
+
+                cont.appendChild(card);
+            }
+
+            // Créer les cartes pour chaque phase
+            if (quarts.length > 0) createMatchCard("Quarts de Finale", quarts);
+            if (demis.length > 0) createMatchCard("Demi-finales", demis);
+            if (finale.length > 0) createMatchCard("Finale", finale);
         }
 
-        quartCard.appendChild(matchContainer);
-    });
-
-    cont.appendChild(quartCard);
-}
 
 
 
@@ -746,24 +847,32 @@
         Papa.parse(csvEquipes, { download: true, header: true, complete: r => afficherPoules(r.data) });
         Papa.parse(csvMatchesPoules, { download: true, header: true, complete: r => afficherMatchesPoules(r.data) });
         Papa.parse(csvTableau, { download: true, header: true, complete: r => remplirTableauFinal(r.data) });
-        const toggleButton = document.getElementById('halloweenToggle');
         
         document.addEventListener('DOMContentLoaded', function() {
-                const toggleButton = document.getElementById('halloweenToggle');
-                toggleButton.addEventListener('click', function(event) {
-                    event.preventDefault(); // Empêche tout comportement par défaut
-                    document.body.classList.toggle('halloween-mode');
-                    const isHalloween = document.body.classList.contains('halloween-mode');
-                    toggleButton.textContent = isHalloween ? 'Mode Halloween ON' : 'Mode Halloween OFF';
+            const toggleButton = document.getElementById('halloweenToggle');
+            toggleButton.addEventListener('click', function(event) {
+                event.preventDefault(); // Empêche tout comportement par défaut
+                document.body.classList.toggle('halloween-mode');
+                const isHalloween = document.body.classList.contains('halloween-mode');
+                toggleButton.textContent = isHalloween ? 'Mode Halloween ON' : 'Mode Halloween OFF';
 
-                    if (isHalloween && !document.getElementById('creepster-font')) {
-                        const fontLink = document.createElement('link');
-                        fontLink.id = 'creepster-font';
-                        fontLink.href = 'https://fonts.googleapis.com/css2?family=Creepster&display=swap';
-                        fontLink.rel = 'stylesheet';
-                        document.head.appendChild(fontLink);
-                    }
+                if (isHalloween && !document.getElementById('creepster-font')) {
+                    const fontLink = document.createElement('link');
+                    fontLink.id = 'creepster-font';
+                    fontLink.href = 'https://fonts.googleapis.com/css2?family=Creepster&display=swap';
+                    fontLink.rel = 'stylesheet';
+                    document.head.appendChild(fontLink);
+                }
+            });
+            const collapsibles = document.querySelectorAll('.collapsible');
+
+            collapsibles.forEach(title => {
+                title.addEventListener('click', function() {
+                    this.classList.toggle('collapsed');
+                    const content = this.nextElementSibling;
+                    content.classList.toggle('collapsed');
                 });
+            });    
         });
     </script>
 </body>
