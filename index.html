@@ -38,7 +38,39 @@
     h1 {
         font-size: 1.8rem;
     }
+    .welcome-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        overflow: hidden;
+        }
 
+        .welcome-banner img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        }
+
+        .close-banner {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 36px;
+        cursor: pointer;
+        z-index: 1001;
+        }
+
+        .close-banner:hover {
+        color: #ff6b00;
+    }
     /* Conteneur pour le bouton de basculement */
     .toggle-container {
     text-align: center;
@@ -349,7 +381,10 @@
     .halloween-mode .match-team-scores span {
         font-size: 0.9rem !important;
     }
-
+        
+    .qualified {
+        background: var(--qualif);
+    }
     .halloween-mode .winning-score {
         color: #4CAF50;
         font-size: 1rem;
@@ -397,6 +432,10 @@
 
 </head>
 <body>
+    <div id="welcomeBanner" class="welcome-banner">
+        <img src="Images/FinaleCoinche.png" alt="Bienvenue">
+        <span class="close-banner" id="closeBanner">&times;</span>
+    </div>
     <header>
         <h1>Tournoi mondial de coinche à Vancouver</h1>
         <div class="toggle-container">
@@ -851,6 +890,13 @@
         Papa.parse(csvTableau, { download: true, header: true, complete: r => remplirTableauFinal(r.data) });
         
         document.addEventListener('DOMContentLoaded', function() {
+            const banner = document.getElementById('welcomeBanner');
+            const closeBanner = document.getElementById('closeBanner');
+
+            closeBanner.addEventListener('click', function() {
+                banner.style.display = 'none';
+            });
+            
             const toggleButton = document.getElementById('halloweenToggle');
             toggleButton.addEventListener('click', function(event) {
                 event.preventDefault(); // Empêche tout comportement par défaut
@@ -879,4 +925,3 @@
     </script>
 </body>
 </html>
-
